@@ -15,5 +15,13 @@ abstract interface class ExpenseRepository {
     required DateTime date,
   });
 
+  Future<void> updateExpense({
+    required int id,
+    required int amountCents,
+    required int categoryId,
+    required String note,
+    required DateTime date,
+  });
+
   Future<void> deleteExpense(int id);
 }

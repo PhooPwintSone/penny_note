@@ -17,8 +17,6 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  static const _railBreakpoint = 1000.0;
-
   static const _screens = [
     HomeScreen(),
     ExpensesScreen(),
@@ -59,51 +57,47 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     final content = IndexedStack(index: _selectedIndex, children: _screens);
+    final shortestSide = MediaQuery.sizeOf(context).shortestSide;
+    final useRail = shortestSide >= 600;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final useRail = constraints.maxWidth >= _railBreakpoint;
-
-        return Scaffold(
-          body: useRail
-              ? Row(
-                  children: [
-                    SafeArea(
-                      child: NavigationRail(
-                        selectedIndex: _selectedIndex,
-                        onDestinationSelected: _selectDestination,
-                        labelType: NavigationRailLabelType.all,
-                        destinations: [
-                          for (final destination in _destinations)
-                            NavigationRailDestination(
-                              icon: Icon(destination.icon),
-                              selectedIcon: Icon(destination.selectedIcon),
-                              label: Text(destination.label),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const VerticalDivider(width: 1),
-                    Expanded(child: content),
-                  ],
-                )
-              : content,
-          bottomNavigationBar: useRail
-              ? null
-              : NavigationBar(
-                  selectedIndex: _selectedIndex,
-                  onDestinationSelected: _selectDestination,
-                  destinations: [
-                    for (final destination in _destinations)
-                      NavigationDestination(
-                        icon: Icon(destination.icon),
-                        selectedIcon: Icon(destination.selectedIcon),
-                        label: destination.label,
-                      ),
-                  ],
+    return Scaffold(
+      body: useRail
+          ? Row(
+              children: [
+                SafeArea(
+                  child: NavigationRail(
+                    selectedIndex: _selectedIndex,
+                    onDestinationSelected: _selectDestination,
+                    labelType: NavigationRailLabelType.all,
+                    destinations: [
+                      for (final destination in _destinations)
+                        NavigationRailDestination(
+                          icon: Icon(destination.icon),
+                          selectedIcon: Icon(destination.selectedIcon),
+                          label: Text(destination.label),
+                        ),
+                    ],
+                  ),
                 ),
-        );
-      },
+                const VerticalDivider(width: 1),
+                Expanded(child: content),
+              ],
+            )
+          : content,
+      bottomNavigationBar: useRail
+          ? null
+          : NavigationBar(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: _selectDestination,
+              destinations: [
+                for (final destination in _destinations)
+                  NavigationDestination(
+                    icon: Icon(destination.icon),
+                    selectedIcon: Icon(destination.selectedIcon),
+                    label: destination.label,
+                  ),
+              ],
+            ),
     );
   }
 }

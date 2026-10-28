@@ -3,12 +3,23 @@ import 'package:penny_note/core/utils/money.dart';
 
 void main() {
   group('formatCents', () {
-    test('formats zero as a complete currency value', () {
-      expect(formatCents(0), r'$0.00');
+    test('formats zero in Myanmar Kyat', () {
+      expect(formatCents(0), 'K 0');
     });
 
-    test('formats cents with thousands separators', () {
-      expect(formatCents(123450), r'$1,234.50');
+    test('formats cents with thousands separators and decimals', () {
+      expect(formatCents(123450), 'K 1,234.50');
+    });
+
+    test('omits unnecessary decimals for whole kyat', () {
+      expect(formatCents(123400), 'K 1,234');
+    });
+  });
+
+  group('formatCentsForInput', () {
+    test('formats cents without a currency symbol', () {
+      expect(formatCentsForInput(123450), '1234.50');
+      expect(formatCentsForInput(1200), '12.00');
     });
   });
 

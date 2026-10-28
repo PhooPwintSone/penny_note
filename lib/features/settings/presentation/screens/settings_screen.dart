@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/theme_provider.dart';
+import '../../../../core/utils/money.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/responsive_content.dart';
 import '../../../../core/widgets/section_header.dart';
+import '../../../categories/presentation/screens/categories_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -67,6 +69,20 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
+            const SectionHeader(title: 'Categories'),
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: ListTile(
+                leading: Icon(Icons.category_outlined, color: colors.primary),
+                title: const Text('Manage categories'),
+                subtitle: const Text(
+                  'Add, rename, change icons, or delete unused categories.',
+                ),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => _openCategories(context),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
             const SectionHeader(title: 'About'),
             AppCard(
               child: Column(
@@ -111,7 +127,12 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.lg),
                   const Divider(),
                   const SizedBox(height: AppSpacing.md),
-                  _AboutRow(label: 'Version', value: '1.0.0'),
+                  const _AboutRow(label: 'Version', value: '1.0.0'),
+                  const SizedBox(height: AppSpacing.sm),
+                  _AboutRow(
+                    label: 'Currency',
+                    value: 'Myanmar Kyat ($currencyCode)',
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                   _AboutRow(label: 'Storage', value: 'On this device only'),
                 ],
@@ -122,6 +143,12 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+void _openCategories(BuildContext context) {
+  Navigator.of(
+    context,
+  ).push(MaterialPageRoute<void>(builder: (_) => const CategoriesScreen()));
 }
 
 class _AboutRow extends StatelessWidget {

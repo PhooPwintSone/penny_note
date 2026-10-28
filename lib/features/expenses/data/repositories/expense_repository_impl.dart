@@ -52,4 +52,27 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       throw const DatabaseFailure('Could not delete this expense.');
     }
   }
+
+  @override
+  Future<void> updateExpense({
+    required int id,
+    required int amountCents,
+    required int categoryId,
+    required String note,
+    required DateTime date,
+  }) async {
+    try {
+      await _localDataSource.updateExpense(
+        id: id,
+        amountCents: amountCents,
+        categoryId: categoryId,
+        note: note,
+        date: date,
+      );
+    } on AppFailure {
+      rethrow;
+    } catch (_) {
+      throw const DatabaseFailure('Could not update this expense.');
+    }
+  }
 }

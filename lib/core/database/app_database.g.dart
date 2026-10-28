@@ -765,18 +765,484 @@ class ExpensesCompanion extends UpdateCompanion<ExpenseRow> {
   }
 }
 
+class $SavingsEntriesTable extends SavingsEntries
+    with TableInfo<$SavingsEntriesTable, SavingsEntryRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SavingsEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _amountCentsMeta = const VerificationMeta(
+    'amountCents',
+  );
+  @override
+  late final GeneratedColumn<int> amountCents = GeneratedColumn<int>(
+    'amount_cents',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isWithdrawalMeta = const VerificationMeta(
+    'isWithdrawal',
+  );
+  @override
+  late final GeneratedColumn<bool> isWithdrawal = GeneratedColumn<bool>(
+    'is_withdrawal',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_withdrawal" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 200),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    amountCents,
+    isWithdrawal,
+    note,
+    date,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'savings_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SavingsEntryRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('amount_cents')) {
+      context.handle(
+        _amountCentsMeta,
+        amountCents.isAcceptableOrUnknown(
+          data['amount_cents']!,
+          _amountCentsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_amountCentsMeta);
+    }
+    if (data.containsKey('is_withdrawal')) {
+      context.handle(
+        _isWithdrawalMeta,
+        isWithdrawal.isAcceptableOrUnknown(
+          data['is_withdrawal']!,
+          _isWithdrawalMeta,
+        ),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SavingsEntryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SavingsEntryRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      amountCents: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_cents'],
+      )!,
+      isWithdrawal: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_withdrawal'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SavingsEntriesTable createAlias(String alias) {
+    return $SavingsEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class SavingsEntryRow extends DataClass implements Insertable<SavingsEntryRow> {
+  final int id;
+
+  /// Money is stored in minor units (cents) to avoid floating point rounding.
+  final int amountCents;
+
+  /// `false` = money added to savings, `true` = money taken out.
+  final bool isWithdrawal;
+  final String note;
+  final DateTime date;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const SavingsEntryRow({
+    required this.id,
+    required this.amountCents,
+    required this.isWithdrawal,
+    required this.note,
+    required this.date,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['amount_cents'] = Variable<int>(amountCents);
+    map['is_withdrawal'] = Variable<bool>(isWithdrawal);
+    map['note'] = Variable<String>(note);
+    map['date'] = Variable<DateTime>(date);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  SavingsEntriesCompanion toCompanion(bool nullToAbsent) {
+    return SavingsEntriesCompanion(
+      id: Value(id),
+      amountCents: Value(amountCents),
+      isWithdrawal: Value(isWithdrawal),
+      note: Value(note),
+      date: Value(date),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory SavingsEntryRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SavingsEntryRow(
+      id: serializer.fromJson<int>(json['id']),
+      amountCents: serializer.fromJson<int>(json['amountCents']),
+      isWithdrawal: serializer.fromJson<bool>(json['isWithdrawal']),
+      note: serializer.fromJson<String>(json['note']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'amountCents': serializer.toJson<int>(amountCents),
+      'isWithdrawal': serializer.toJson<bool>(isWithdrawal),
+      'note': serializer.toJson<String>(note),
+      'date': serializer.toJson<DateTime>(date),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  SavingsEntryRow copyWith({
+    int? id,
+    int? amountCents,
+    bool? isWithdrawal,
+    String? note,
+    DateTime? date,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => SavingsEntryRow(
+    id: id ?? this.id,
+    amountCents: amountCents ?? this.amountCents,
+    isWithdrawal: isWithdrawal ?? this.isWithdrawal,
+    note: note ?? this.note,
+    date: date ?? this.date,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  SavingsEntryRow copyWithCompanion(SavingsEntriesCompanion data) {
+    return SavingsEntryRow(
+      id: data.id.present ? data.id.value : this.id,
+      amountCents: data.amountCents.present
+          ? data.amountCents.value
+          : this.amountCents,
+      isWithdrawal: data.isWithdrawal.present
+          ? data.isWithdrawal.value
+          : this.isWithdrawal,
+      note: data.note.present ? data.note.value : this.note,
+      date: data.date.present ? data.date.value : this.date,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SavingsEntryRow(')
+          ..write('id: $id, ')
+          ..write('amountCents: $amountCents, ')
+          ..write('isWithdrawal: $isWithdrawal, ')
+          ..write('note: $note, ')
+          ..write('date: $date, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    amountCents,
+    isWithdrawal,
+    note,
+    date,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SavingsEntryRow &&
+          other.id == this.id &&
+          other.amountCents == this.amountCents &&
+          other.isWithdrawal == this.isWithdrawal &&
+          other.note == this.note &&
+          other.date == this.date &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class SavingsEntriesCompanion extends UpdateCompanion<SavingsEntryRow> {
+  final Value<int> id;
+  final Value<int> amountCents;
+  final Value<bool> isWithdrawal;
+  final Value<String> note;
+  final Value<DateTime> date;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const SavingsEntriesCompanion({
+    this.id = const Value.absent(),
+    this.amountCents = const Value.absent(),
+    this.isWithdrawal = const Value.absent(),
+    this.note = const Value.absent(),
+    this.date = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  SavingsEntriesCompanion.insert({
+    this.id = const Value.absent(),
+    required int amountCents,
+    this.isWithdrawal = const Value.absent(),
+    this.note = const Value.absent(),
+    required DateTime date,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : amountCents = Value(amountCents),
+       date = Value(date);
+  static Insertable<SavingsEntryRow> custom({
+    Expression<int>? id,
+    Expression<int>? amountCents,
+    Expression<bool>? isWithdrawal,
+    Expression<String>? note,
+    Expression<DateTime>? date,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (amountCents != null) 'amount_cents': amountCents,
+      if (isWithdrawal != null) 'is_withdrawal': isWithdrawal,
+      if (note != null) 'note': note,
+      if (date != null) 'date': date,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  SavingsEntriesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? amountCents,
+    Value<bool>? isWithdrawal,
+    Value<String>? note,
+    Value<DateTime>? date,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return SavingsEntriesCompanion(
+      id: id ?? this.id,
+      amountCents: amountCents ?? this.amountCents,
+      isWithdrawal: isWithdrawal ?? this.isWithdrawal,
+      note: note ?? this.note,
+      date: date ?? this.date,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (amountCents.present) {
+      map['amount_cents'] = Variable<int>(amountCents.value);
+    }
+    if (isWithdrawal.present) {
+      map['is_withdrawal'] = Variable<bool>(isWithdrawal.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SavingsEntriesCompanion(')
+          ..write('id: $id, ')
+          ..write('amountCents: $amountCents, ')
+          ..write('isWithdrawal: $isWithdrawal, ')
+          ..write('note: $note, ')
+          ..write('date: $date, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $ExpensesTable expenses = $ExpensesTable(this);
+  late final $SavingsEntriesTable savingsEntries = $SavingsEntriesTable(this);
   late final CategoryDao categoryDao = CategoryDao(this as AppDatabase);
   late final ExpenseDao expenseDao = ExpenseDao(this as AppDatabase);
+  late final SavingsDao savingsDao = SavingsDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [categories, expenses];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    categories,
+    expenses,
+    savingsEntries,
+  ];
 }
 
 typedef $$CategoriesTableCreateCompanionBuilder =
@@ -1407,6 +1873,257 @@ typedef $$ExpensesTableProcessedTableManager =
       ExpenseRow,
       PrefetchHooks Function({bool categoryId})
     >;
+typedef $$SavingsEntriesTableCreateCompanionBuilder =
+    SavingsEntriesCompanion Function({
+      Value<int> id,
+      required int amountCents,
+      Value<bool> isWithdrawal,
+      Value<String> note,
+      required DateTime date,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$SavingsEntriesTableUpdateCompanionBuilder =
+    SavingsEntriesCompanion Function({
+      Value<int> id,
+      Value<int> amountCents,
+      Value<bool> isWithdrawal,
+      Value<String> note,
+      Value<DateTime> date,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+class $$SavingsEntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $SavingsEntriesTable> {
+  $$SavingsEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountCents => $composableBuilder(
+    column: $table.amountCents,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isWithdrawal => $composableBuilder(
+    column: $table.isWithdrawal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SavingsEntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $SavingsEntriesTable> {
+  $$SavingsEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountCents => $composableBuilder(
+    column: $table.amountCents,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isWithdrawal => $composableBuilder(
+    column: $table.isWithdrawal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SavingsEntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SavingsEntriesTable> {
+  $$SavingsEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get amountCents => $composableBuilder(
+    column: $table.amountCents,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isWithdrawal => $composableBuilder(
+    column: $table.isWithdrawal,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$SavingsEntriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SavingsEntriesTable,
+          SavingsEntryRow,
+          $$SavingsEntriesTableFilterComposer,
+          $$SavingsEntriesTableOrderingComposer,
+          $$SavingsEntriesTableAnnotationComposer,
+          $$SavingsEntriesTableCreateCompanionBuilder,
+          $$SavingsEntriesTableUpdateCompanionBuilder,
+          (
+            SavingsEntryRow,
+            BaseReferences<
+              _$AppDatabase,
+              $SavingsEntriesTable,
+              SavingsEntryRow
+            >,
+          ),
+          SavingsEntryRow,
+          PrefetchHooks Function()
+        > {
+  $$SavingsEntriesTableTableManager(
+    _$AppDatabase db,
+    $SavingsEntriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SavingsEntriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SavingsEntriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SavingsEntriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> amountCents = const Value.absent(),
+                Value<bool> isWithdrawal = const Value.absent(),
+                Value<String> note = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => SavingsEntriesCompanion(
+                id: id,
+                amountCents: amountCents,
+                isWithdrawal: isWithdrawal,
+                note: note,
+                date: date,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int amountCents,
+                Value<bool> isWithdrawal = const Value.absent(),
+                Value<String> note = const Value.absent(),
+                required DateTime date,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => SavingsEntriesCompanion.insert(
+                id: id,
+                amountCents: amountCents,
+                isWithdrawal: isWithdrawal,
+                note: note,
+                date: date,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SavingsEntriesTable, SavingsEntryRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $SavingsEntriesTable,
+                    SavingsEntryRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SavingsEntriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SavingsEntriesTable,
+      SavingsEntryRow,
+      $$SavingsEntriesTableFilterComposer,
+      $$SavingsEntriesTableOrderingComposer,
+      $$SavingsEntriesTableAnnotationComposer,
+      $$SavingsEntriesTableCreateCompanionBuilder,
+      $$SavingsEntriesTableUpdateCompanionBuilder,
+      (
+        SavingsEntryRow,
+        BaseReferences<_$AppDatabase, $SavingsEntriesTable, SavingsEntryRow>,
+      ),
+      SavingsEntryRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1415,4 +2132,6 @@ class $AppDatabaseManager {
       $$CategoriesTableTableManager(_db, _db.categories);
   $$ExpensesTableTableManager get expenses =>
       $$ExpensesTableTableManager(_db, _db.expenses);
+  $$SavingsEntriesTableTableManager get savingsEntries =>
+      $$SavingsEntriesTableTableManager(_db, _db.savingsEntries);
 }

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/utils/money.dart';
+import '../../domain/entities/expense.dart';
 import '../providers/expense_providers.dart';
 
 class AddExpenseFormState {
@@ -10,6 +11,7 @@ class AddExpenseFormState {
     this.note = '',
     this.categoryId,
     required this.date,
+    this.editingId,
     this.isSaving = false,
     this.errorMessage,
   });
@@ -18,10 +20,13 @@ class AddExpenseFormState {
   final String note;
   final int? categoryId;
   final DateTime date;
+  final int? editingId;
   final bool isSaving;
   final String? errorMessage;
 
   int? get amountCents => parseAmountToCents(amountText);
+
+  bool get isEditing => editingId != null;
 
   bool get canSubmit => amountCents != null && categoryId != null && !isSaving;
 
@@ -30,6 +35,7 @@ class AddExpenseFormState {
     String? note,
     int? categoryId,
     DateTime? date,
+    int? editingId,
     bool? isSaving,
     String? errorMessage,
     bool clearError = false,
@@ -39,6 +45,7 @@ class AddExpenseFormState {
       note: note ?? this.note,
       categoryId: categoryId ?? this.categoryId,
       date: date ?? this.date,
+      editingId: editingId ?? this.editingId,
       isSaving: isSaving ?? this.isSaving,
       errorMessage: clearError ? null : errorMessage ?? this.errorMessage,
     );
@@ -46,9 +53,24 @@ class AddExpenseFormState {
 }
 
 class AddExpenseViewModel extends Notifier<AddExpenseFormState> {
+  AddExpenseViewModel(this.initialExpense);
+
+  final Expense? initialExpense;
+
   @override
   AddExpenseFormState build() {
-    return AddExpenseFormState(date: DateTime.now());
+    final expense = initialExpense;
+    if (expense == null) {
+      return AddExpenseFormState(date: DateTime.now());
+    }
+
+    return AddExpenseFormState(
+      amountText: formatCentsForInput(expense.amountCents),
+      note: expense.note,
+      categoryId: expense.category.id,
+      date: expense.date,
+      editingId: expense.id,
+    );
   }
 
   void setAmount(String value) {
@@ -73,7 +95,7 @@ class AddExpenseViewModel extends Notifier<AddExpenseFormState> {
     final categoryId = state.categoryId;
 
     if (amountCents == null) {
-      state = state.copyWith(errorMessage: 'Enter an amount like 12.50.');
+      state = state.copyWith(errorMessage: 'Enter an amount like 1,500.');
       return false;
     }
     if (categoryId == null) {
@@ -83,12 +105,23 @@ class AddExpenseViewModel extends Notifier<AddExpenseFormState> {
 
     state = state.copyWith(isSaving: true, clearError: true);
     try {
-      await ref.read(addExpenseUseCaseProvider)(
-        amountCents: amountCents,
-        categoryId: categoryId,
-        note: state.note,
-        date: state.date,
-      );
+      final editingId = state.editingId;
+      if (editingId == null) {
+        await ref.read(addExpenseUseCaseProvider)(
+          amountCents: amountCents,
+          categoryId: categoryId,
+          note: state.note,
+          date: state.date,
+        );
+      } else {
+        await ref.read(updateExpenseUseCaseProvider)(
+          id: editingId,
+          amountCents: amountCents,
+          categoryId: categoryId,
+          note: state.note,
+          date: state.date,
+        );
+      }
       return true;
     } on AppFailure catch (failure) {
       state = state.copyWith(isSaving: false, errorMessage: failure.message);
@@ -96,14 +129,16 @@ class AddExpenseViewModel extends Notifier<AddExpenseFormState> {
     } catch (_) {
       state = state.copyWith(
         isSaving: false,
-        errorMessage: 'Could not save this expense.',
+        errorMessage: state.isEditing
+            ? 'Could not update this expense.'
+            : 'Could not save this expense.',
       );
       return false;
     }
   }
 }
 
-final addExpenseViewModelProvider =
-    NotifierProvider.autoDispose<AddExpenseViewModel, AddExpenseFormState>(
+final addExpenseViewModelProvider = NotifierProvider.autoDispose
+    .family<AddExpenseViewModel, AddExpenseFormState, Expense?>(
       AddExpenseViewModel.new,
     );

@@ -3,23 +3,58 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/category_icons.dart';
-import '../../../../core/widgets/responsive_content.dart';
 import '../../../../core/utils/date_formats.dart';
+import '../../../../core/utils/money.dart';
+import '../../../../core/widgets/responsive_content.dart';
 import '../../../categories/presentation/providers/category_providers.dart';
+import '../../domain/entities/expense.dart';
 import '../viewmodels/add_expense_view_model.dart';
 
-class AddExpenseScreen extends ConsumerWidget {
-  const AddExpenseScreen({super.key});
+class AddExpenseScreen extends ConsumerStatefulWidget {
+  const AddExpenseScreen({super.key, this.expense});
+
+  /// When provided, the form edits this expense instead of adding a new one.
+  final Expense? expense;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final form = ref.watch(addExpenseViewModelProvider);
-    final viewModel = ref.read(addExpenseViewModelProvider.notifier);
+  ConsumerState<AddExpenseScreen> createState() => _AddExpenseScreenState();
+}
+
+class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
+  late final TextEditingController _amountController;
+  late final TextEditingController _noteController;
+
+  bool get _isEditing => widget.expense != null;
+
+  AddExpenseViewModel get _viewModel =>
+      ref.read(addExpenseViewModelProvider(widget.expense).notifier);
+
+  @override
+  void initState() {
+    super.initState();
+    final expense = widget.expense;
+    _amountController = TextEditingController(
+      text: expense == null ? '' : formatCentsForInput(expense.amountCents),
+    );
+    _noteController = TextEditingController(text: expense?.note ?? '');
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final form = ref.watch(addExpenseViewModelProvider(widget.expense));
+    final viewModel = _viewModel;
     final categories = ref.watch(categoriesStreamProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Add expense')),
+      appBar: AppBar(title: Text(_isEditing ? 'Edit expense' : 'Add expense')),
       body: SafeArea(
         child: ResponsiveContent(
           maxWidth: 640,
@@ -32,12 +67,15 @@ class AddExpenseScreen extends ConsumerWidget {
             ),
             children: [
               Text(
-                'How much did you spend?',
+                _isEditing
+                    ? 'Update the details of this expense.'
+                    : 'How much did you spend?',
                 style: theme.textTheme.titleMedium,
               ),
               const SizedBox(height: AppSpacing.md),
               TextField(
-                autofocus: true,
+                controller: _amountController,
+                autofocus: !_isEditing,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
@@ -45,9 +83,10 @@ class AddExpenseScreen extends ConsumerWidget {
                 onChanged: viewModel.setAmount,
                 style: theme.textTheme.headlineMedium,
                 decoration: const InputDecoration(
-                  labelText: 'Amount',
-                  prefixText: r'$ ',
-                  hintText: '0.00',
+                  labelText: 'Amount (MMK)',
+                  prefixText: '$currencySymbol ',
+                  hintText: '0',
+                  helperText: 'Myanmar Kyat',
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
@@ -87,6 +126,7 @@ class AddExpenseScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
               TextField(
+                controller: _noteController,
                 maxLength: 200,
                 maxLines: 2,
                 textCapitalization: TextCapitalization.sentences,
@@ -132,7 +172,7 @@ class AddExpenseScreen extends ConsumerWidget {
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Save expense'),
+                    : Text(_isEditing ? 'Save changes' : 'Save expense'),
               ),
             ],
           ),
@@ -155,7 +195,9 @@ class AddExpenseScreen extends ConsumerWidget {
       helpText: 'Expense date',
     );
     if (picked != null) {
-      ref.read(addExpenseViewModelProvider.notifier).setDate(picked);
+      ref
+          .read(addExpenseViewModelProvider(widget.expense).notifier)
+          .setDate(picked);
     }
   }
 }

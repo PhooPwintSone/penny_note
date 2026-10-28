@@ -8,6 +8,7 @@ import '../../domain/entities/expense.dart';
 import '../../domain/repositories/expense_repository.dart';
 import '../../domain/usecases/add_expense.dart';
 import '../../domain/usecases/delete_expense.dart';
+import '../../domain/usecases/update_expense.dart';
 import '../../domain/usecases/watch_expenses.dart';
 
 /// Dependency-injection graph for the expenses feature.
@@ -37,6 +38,10 @@ final addExpenseUseCaseProvider = Provider<AddExpense>((ref) {
 
 final deleteExpenseUseCaseProvider = Provider<DeleteExpense>((ref) {
   return DeleteExpense(ref.watch(expenseRepositoryProvider));
+});
+
+final updateExpenseUseCaseProvider = Provider<UpdateExpense>((ref) {
+  return UpdateExpense(ref.watch(expenseRepositoryProvider));
 });
 
 /// Live expenses from SQLite. Drift re-runs the query after every write.

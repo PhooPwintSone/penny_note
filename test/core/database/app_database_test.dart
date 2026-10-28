@@ -12,6 +12,19 @@ void main() {
 
   tearDown(() => database.close());
 
+  test('uses schema version 2 with a savings ledger', () async {
+    expect(database.schemaVersion, 2);
+
+    await database.savingsDao.insertEntry(
+      SavingsEntriesCompanion.insert(
+        amountCents: 750,
+        date: DateTime(2026, 10, 27),
+      ),
+    );
+
+    expect(await database.savingsDao.totalCents(), 750);
+  });
+
   test('seeds the default categories on first open', () async {
     final categories = await database.categoryDao.watchAll().first;
 

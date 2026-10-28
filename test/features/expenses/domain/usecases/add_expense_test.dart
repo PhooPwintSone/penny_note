@@ -87,5 +87,14 @@ class _FakeExpenseRepository implements ExpenseRepository {
   }
 
   @override
+  Future<void> updateExpense({
+    required int id,
+    required int amountCents,
+    required int categoryId,
+    required String note,
+    required DateTime date,
+  }) async {}
+
+  @override
   Future<void> deleteExpense(int id) async {}
 }

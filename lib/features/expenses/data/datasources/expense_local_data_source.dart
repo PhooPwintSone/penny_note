@@ -45,4 +45,26 @@ class ExpenseLocalDataSource {
       throw const DatabaseFailure('That expense no longer exists.');
     }
   }
+
+  Future<void> updateExpense({
+    required int id,
+    required int amountCents,
+    required int categoryId,
+    required String note,
+    required DateTime date,
+  }) async {
+    final updated = await _dao.updateExpense(
+      id,
+      ExpensesCompanion(
+        amountCents: Value(amountCents),
+        categoryId: Value(categoryId),
+        note: Value(note),
+        date: Value(date),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    if (!updated) {
+      throw const DatabaseFailure('That expense no longer exists.');
+    }
+  }
 }

@@ -4,12 +4,17 @@ import 'package:drift_flutter/drift_flutter.dart';
 import '../constants/app_constants.dart';
 import 'daos/category_dao.dart';
 import 'daos/expense_dao.dart';
+import 'daos/savings_dao.dart';
 import 'tables/categories.dart';
 import 'tables/expenses.dart';
+import 'tables/savings_entries.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Categories, Expenses], daos: [CategoryDao, ExpenseDao])
+@DriftDatabase(
+  tables: [Categories, Expenses, SavingsEntries],
+  daos: [CategoryDao, ExpenseDao, SavingsDao],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
@@ -17,7 +22,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
@@ -27,7 +32,9 @@ class AppDatabase extends _$AppDatabase {
         await _seedDefaultCategories();
       },
       onUpgrade: (migrator, from, to) async {
-        // Add incremental migrations here when schemaVersion increases.
+        if (from < 2) {
+          await migrator.createTable(savingsEntries);
+        }
       },
       beforeOpen: (details) async {
         // SQLite requires foreign keys to be enabled on every connection.

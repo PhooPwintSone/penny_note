@@ -46,6 +46,13 @@ class ExpenseDao extends DatabaseAccessor<AppDatabase> with _$ExpenseDaoMixin {
     return into(expenses).insert(expense);
   }
 
+  Future<bool> updateExpense(int id, ExpensesCompanion expense) async {
+    final updated = await (update(
+      expenses,
+    )..where((row) => row.id.equals(id))).write(expense);
+    return updated > 0;
+  }
+
   Future<bool> deleteExpense(int id) async {
     final deleted = await (delete(
       expenses,

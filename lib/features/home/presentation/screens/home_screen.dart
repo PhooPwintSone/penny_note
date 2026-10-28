@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/date_formats.dart';
+import '../../../../core/utils/money.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/responsive_content.dart';
 import '../../../../core/widgets/section_header.dart';
 import '../../../expenses/presentation/screens/add_expense_screen.dart';
 import '../../../expenses/presentation/widgets/expense_tile.dart';
+import '../../../savings/presentation/screens/savings_screen.dart';
 import '../viewmodels/home_view_model.dart';
 import '../widgets/balance_card.dart';
 
@@ -64,6 +66,11 @@ class HomeScreen extends ConsumerWidget {
                   balanceCents: state.balanceCents,
                   incomeCents: state.totalIncomeCents,
                   expenseCents: state.totalExpenseCents,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _SavingsShortcut(
+                  totalCents: state.totalSavingsCents,
+                  onTap: () => _openSavings(context),
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 const SectionHeader(title: 'Recent Expenses'),
@@ -150,5 +157,72 @@ class HomeScreen extends ConsumerWidget {
     Navigator.of(
       context,
     ).push(MaterialPageRoute<void>(builder: (_) => const AddExpenseScreen()));
+  }
+
+  void _openSavings(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const SavingsScreen()));
+  }
+}
+
+class _SavingsShortcut extends StatelessWidget {
+  const _SavingsShortcut({required this.totalCents, required this.onTap});
+
+  final int totalCents;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    return AppCard(
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: colors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppSpacing.tileRadius),
+            ),
+            child: Icon(Icons.savings_outlined, color: colors.primary),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Savings', style: theme.textTheme.titleSmall),
+                const SizedBox(height: 2),
+                Text(
+                  totalCents == 0
+                      ? 'Start setting money aside'
+                      : 'Money set aside for later',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            formatCents(totalCents),
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Icon(Icons.chevron_right_rounded, color: colors.onSurfaceVariant),
+        ],
+      ),
+    );
   }
 }

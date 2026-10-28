@@ -6,6 +6,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/responsive_content.dart';
+import '../../domain/entities/expense.dart';
 import '../viewmodels/expenses_view_model.dart';
 import '../widgets/expense_tile.dart';
 import 'add_expense_screen.dart';
@@ -109,11 +110,24 @@ class ExpensesScreen extends ConsumerWidget {
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                         onSelected: (action) {
-                          if (action == _ExpenseAction.delete) {
-                            _confirmAndDelete(context, ref, expense.id);
+                          switch (action) {
+                            case _ExpenseAction.edit:
+                              _openExpenseForm(context, expense);
+                            case _ExpenseAction.delete:
+                              _confirmAndDelete(context, ref, expense.id);
                           }
                         },
                         itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: _ExpenseAction.edit,
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit_outlined, size: 20),
+                                SizedBox(width: AppSpacing.sm),
+                                Text('Edit'),
+                              ],
+                            ),
+                          ),
                           const PopupMenuItem(
                             value: _ExpenseAction.delete,
                             child: Row(
@@ -143,9 +157,15 @@ class ExpensesScreen extends ConsumerWidget {
   }
 
   void _openAddExpense(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => const AddExpenseScreen()));
+    _openExpenseForm(context, null);
+  }
+
+  void _openExpenseForm(BuildContext context, Expense? expense) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => AddExpenseScreen(expense: expense),
+      ),
+    );
   }
 
   Future<void> _confirmAndDelete(
@@ -190,4 +210,4 @@ class ExpensesScreen extends ConsumerWidget {
   }
 }
 
-enum _ExpenseAction { delete }
+enum _ExpenseAction { edit, delete }
