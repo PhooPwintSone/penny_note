@@ -2,7 +2,7 @@
 
 // Bump this whenever the deployed app shell changes so browsers install the
 // new cache instead of keeping the previous build.
-const CACHE_VERSION = 'penny-note-v2';
+const CACHE_VERSION = 'penny-note-v3';
 const SCOPE = self.registration.scope;
 
 const APP_SHELL = [

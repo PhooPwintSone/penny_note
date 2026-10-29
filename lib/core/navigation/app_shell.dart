@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../features/expenses/presentation/screens/expenses_screen.dart';
 import '../../../features/home/presentation/screens/home_screen.dart';
+import '../../../features/income/presentation/screens/incomes_screen.dart';
 import '../../../features/settings/presentation/screens/settings_screen.dart';
 import '../../../features/statistics/presentation/screens/statistics_screen.dart';
 
@@ -20,6 +21,7 @@ class _AppShellState extends State<AppShell> {
   static const _screens = [
     HomeScreen(),
     ExpensesScreen(),
+    IncomesScreen(),
     StatisticsScreen(),
     SettingsScreen(),
   ];
@@ -35,6 +37,11 @@ class _AppShellState extends State<AppShell> {
           icon: Icons.receipt_long_outlined,
           selectedIcon: Icons.receipt_long_rounded,
           label: 'Expenses',
+        ),
+        (
+          icon: Icons.payments_outlined,
+          selectedIcon: Icons.payments_rounded,
+          label: 'Income',
         ),
         (
           icon: Icons.insights_outlined,

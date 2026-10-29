@@ -2,28 +2,35 @@
 
 > Every penny has a story.
 
-Penny Note is a calm, private expense journal for Android, iOS, and the web.
+Penny Note is a calm, private expense and income journal for Android, iOS, and
+the web.
 It is **offline-first**: every entry stays in a local database on the device.
 There is no account, backend, analytics, or API. On the web, the app can be
 installed to the Home Screen and reopened without a network connection after its
 assets have been cached.
 
-This repository contains a complete local-first expense journal: the architecture,
-theme system, Drift database, dashboard, expense add/edit/delete, a savings
-ledger, and customizable categories. Amounts use Myanmar Kyat (MMK).
+This repository contains a complete local-first expense and income journal: the
+architecture, theme system, Drift database, dashboard, expense and income
+add/edit/delete, a savings ledger, and customizable categories. Amounts use
+Myanmar Kyat (MMK).
 
 ## What works today
 
-- **Home dashboard** — greeting, balance card, savings shortcut, recent
-  expenses, and a friendly empty state. No placeholder financial data.
+- **Home dashboard** — greeting, balance card with income and expense totals,
+  savings shortcut, recent expenses, and a friendly empty state. No placeholder
+  financial data.
 - **Expenses** — add an expense (amount, category, note, date), edit it later,
   see it instantly, and delete it with confirmation.
+- **Income** — record income with its own categories, edit or delete entries,
+  and see the updated balance on the dashboard.
 - **Savings** — record deposits and withdrawals, see the running total, and
   review or delete the savings history. Withdrawals cannot exceed the current
   balance, and deleting a deposit cannot make savings negative.
-- **Categories** — create categories, rename them, change their icons, and delete
-  unused ones. Categories referenced by expenses are protected so history stays
-  intact; the last remaining category cannot be deleted.
+- **Expense categories** — create categories, rename them, change their icons,
+  and delete unused ones. Categories referenced by expenses are protected so
+  history stays intact; the last remaining category cannot be deleted.
+- **Income categories** — a separate category list for income, with the same
+  add, rename, re-icon, and protected-delete rules.
 - **Myanmar Kyat** — every amount is stored as integer cents and shown as `K`
   (MMK), with thousands separators and decimals only when needed.
 - **Theme** — light, dark, and system modes with a custom Material 3 palette.
@@ -79,17 +86,19 @@ lib/
 │   ├── constants/      app name, tagline, database name
 │   ├── database/       Drift database, tables, DAOs, database provider
 │   ├── errors/         user-safe failure types
-│   ├── navigation/     app shell with Home / Expenses / Statistics / Settings
+│   ├── navigation/     app shell with Home / Expenses / Income / Statistics /
+│   │                    Settings
 │   ├── theme/          brand palette, ThemeData, theme mode provider
 │   ├── utils/          money, date, and category-icon helpers
 │   └── widgets/        shared cards, empty states, responsive content
 ├── features/
 │   ├── expenses/       domain / data / presentation (add, edit, delete)
-│   ├── categories/     domain / data / presentation (create, edit, delete)
+│   ├── categories/     expense category CRUD
+│   ├── income/         income entries and income-category CRUD
 │   ├── savings/        deposit / withdrawal ledger and balance
 │   ├── home/           dashboard screen, ViewModel, balance card
 │   ├── statistics/     placeholder screen
-│   └── settings/       theme selection, categories, about
+│   └── settings/       theme selection, category management, about
 ├── app.dart            MaterialApp, themes, root navigation
 └── main.dart           ProviderScope entry point
 
@@ -113,24 +122,33 @@ web/
 4. Drift inserts or updates the row and re-emits the joined watch query.
 5. `expensesStreamProvider` updates; Home and Expenses rebuild from the database.
 
+Income follows the same path through `AddIncomeViewModel`, the income use cases,
+`IncomeLocalDataSource`, and `IncomeDao`; Home watches the income stream too so
+the balance updates immediately.
+
 Money is stored as **integer cents** (`amountCents`). This avoids floating-point
 rounding when totals are summed; formatting happens at the edge with
 `formatCents`. MMK uses the `K` symbol and omits `.00` for whole kyat.
 
 ## Database
 
-Schema version 2 contains:
+Schema version 3 contains:
 
 - `categories` — `id`, unique `name`, icon key, `createdAt`
 - `expenses` — `id`, `amountCents`, `categoryId` (FK), `note`, `date`,
   `createdAt`, `updatedAt`
 - `savings_entries` — `id`, `amountCents`, `isWithdrawal`, `note`, `date`,
   `createdAt`, `updatedAt`
+- `income_categories` — `id`, unique `name`, icon key, `createdAt`
+- `incomes` — `id`, `amountCents`, `categoryId` (FK), `note`, `date`,
+  `createdAt`, `updatedAt`
 
-Seven default categories (Food, Transport, Shopping, Bills, Health, Coffee,
-Other) are seeded on first launch so the expense form is usable immediately.
-Upgrading from schema version 1 creates the savings table; future schema changes
-belong in `onUpgrade`.
+Seven default expense categories (Food, Transport, Shopping, Bills, Health,
+Coffee, Other) and six default income categories (Salary, Freelance, Business,
+Gifts, Interest, Other) are seeded on first launch so both forms are usable
+immediately. Upgrading from schema version 2 creates the income tables and seeds
+the default income categories; upgrading from version 1 also creates the savings
+table. Future schema changes belong in `onUpgrade`.
 
 On native platforms the database opens through `drift_flutter` and lives in the
 app documents directory. On the web, `AppDatabase` passes `DriftWebOptions`
@@ -231,27 +249,29 @@ dart run build_runner build --delete-conflicting-outputs
   provide a permanent-storage guarantee. There is no cloud backup yet.
 - Storage is origin-specific: `http://192.168.x.x:8080` and a deployed HTTPS
   domain have separate databases.
-- No network request is made for normal expense operations. Only the initial app
-  download (and browser update checks) use the network.
+- No network request is made for normal expense or income operations. Only the
+  initial app download (and browser update checks) use the network.
 
 ## Tests
 
 The suite covers:
 
 - money parsing and MMK formatting
-- add/update expense domain validation
+- add/update expense and income domain validation
 - Drift seeding, joins, inserts, updates, deletes, and reactive queries
-- schema version 2 and the savings ledger
-- category add/rename/delete rules, including used and last-category protection
+- schema version 3, the savings ledger, and income tables
+- expense and income category add/rename/delete rules, including used and
+  last-category protection
 - savings deposits, withdrawals, balance limits, and safe deletion
-- dashboard empty/loaded states on a phone-sized screen
-- expense list layout, edit action, and the delete affordance
-- the add/edit expense form
+- dashboard empty/loaded states and income/expense balance totals
+- expense and income list layout, edit actions, and delete affordances
+- the add/edit expense and income forms
 - app smoke test and light/dark theme switching
 - bottom navigation on phones and a navigation rail on larger screens
 
-Widget tests override the expense and savings streams so they never open a real
-database file. Database and use-case tests use `NativeDatabase.memory()`.
+Widget tests override the expense, income, and savings streams so they never open
+a real database file. Database and use-case tests use
+`NativeDatabase.memory()`.
 
 The web build was exercised in Chrome with an iPhone-sized viewport. Actual
 iPhone Safari was not available in this environment, so verify Home Screen
@@ -260,7 +280,6 @@ installation on your device.
 ## Roadmap
 
 - Persist the selected theme
-- Income tracking and a real monthly balance
 - Savings goals and progress
 - Budgets and spending limits
 - Statistics: monthly totals, category breakdowns, trends

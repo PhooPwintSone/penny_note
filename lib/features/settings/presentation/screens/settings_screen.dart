@@ -9,6 +9,7 @@ import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/responsive_content.dart';
 import '../../../../core/widgets/section_header.dart';
 import '../../../categories/presentation/screens/categories_screen.dart';
+import '../../../income/presentation/screens/income_categories_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -72,14 +73,34 @@ class SettingsScreen extends ConsumerWidget {
             const SectionHeader(title: 'Categories'),
             AppCard(
               padding: EdgeInsets.zero,
-              child: ListTile(
-                leading: Icon(Icons.category_outlined, color: colors.primary),
-                title: const Text('Manage categories'),
-                subtitle: const Text(
-                  'Add, rename, change icons, or delete unused categories.',
-                ),
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () => _openCategories(context),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: Icon(
+                      Icons.category_outlined,
+                      color: colors.primary,
+                    ),
+                    title: const Text('Expense categories'),
+                    subtitle: const Text(
+                      'Add, rename, change icons, or delete unused categories.',
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => _openCategories(context),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: Icon(
+                      Icons.payments_outlined,
+                      color: colors.primary,
+                    ),
+                    title: const Text('Income categories'),
+                    subtitle: const Text(
+                      'Manage the categories used by your income entries.',
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => _openIncomeCategories(context),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
@@ -149,6 +170,12 @@ void _openCategories(BuildContext context) {
   Navigator.of(
     context,
   ).push(MaterialPageRoute<void>(builder: (_) => const CategoriesScreen()));
+}
+
+void _openIncomeCategories(BuildContext context) {
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(builder: (_) => const IncomeCategoriesScreen()),
+  );
 }
 
 class _AboutRow extends StatelessWidget {

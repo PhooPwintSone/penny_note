@@ -1,9 +1,9 @@
 # AGENTS.md
 
-`penny_note` is an offline-first Flutter expense tracker: Riverpod 3 for DI/state,
-Drift for local storage, Clean Architecture with MVVM presentation. It targets
-Android, iOS, and the web. No backend, no Firebase, no data API. See `README.md`
-for the product overview.
+`penny_note` is an offline-first Flutter expense and income tracker: Riverpod 3
+for DI/state, Drift for local storage, Clean Architecture with MVVM
+presentation. It targets Android, iOS, and the web. No backend, no Firebase, no
+data API. See `README.md` for the product overview.
 
 ## Commands (run from this directory)
 
@@ -45,11 +45,12 @@ lib/
   features/
     expenses/                         domain + data + presentation
                                       (add, edit, delete)
-    categories/                       domain + data + presentation (CRUD)
+    categories/                       expense category CRUD
+    income/                           income entries + income-category CRUD
     savings/                          deposit/withdrawal ledger
     home/                             dashboard screen, ViewModel, balance card
     statistics/                       placeholder screen
-    settings/                         theme, categories, about
+    settings/                         theme, category management, about
 ```
 
 Dependency direction (never invert it):
@@ -67,7 +68,9 @@ View -> ViewModel -> UseCase -> Repository interface
   a DAO, database, or repository implementation directly.
 - Riverpod is the composition root: providers in
   `features/expenses/presentation/providers/expense_providers.dart`,
-  `features/categories/presentation/providers/category_providers.dart`, and
+  `features/categories/presentation/providers/category_providers.dart`,
+  `features/income/presentation/providers/income_providers.dart`,
+  `features/income/presentation/providers/income_category_providers.dart`, and
   `features/savings/presentation/providers/savings_providers.dart` build the
   DAO -> datasource -> repository -> use-case chain. ViewModels depend on use
   cases only. `core/database/database_provider.dart` owns the single database
@@ -77,13 +80,13 @@ View -> ViewModel -> UseCase -> Repository interface
 
 - Use `Notifier`/`AsyncNotifier` + `NotifierProvider`/`AsyncNotifierProvider`
   (not `StateNotifier`). Auto-dispose form state:
-  `NotifierProvider.autoDispose<...>(...)`. The expense form is an
-  auto-dispose *family* keyed by the optional `Expense` being edited; do not
-  initialize it by mutating the provider from `initState`.
-- `HomeViewModel`, `ExpensesViewModel`, and `SavingsViewModel` are
-  `AsyncNotifier`s that await their stream provider's `.future`, so every Drift
-  emission rebuilds the UI state. `HomeViewModel` watches both expenses and
-  savings.
+  `NotifierProvider.autoDispose<...>(...)`. The expense and income forms are
+  auto-dispose *families* keyed by the optional entity being edited; do not
+  initialize them by mutating the provider from `initState`.
+- `HomeViewModel`, `ExpensesViewModel`, `IncomesViewModel`, and
+  `SavingsViewModel` are `AsyncNotifier`s that await their stream provider's
+  `.future`, so every Drift emission rebuilds the UI state. `HomeViewModel`
+  watches expenses, income, and savings.
 - Drift is the source of truth. After add/edit/delete, do **not** manually
   mutate lists; the watched stream re-emits. Delete calls rethrow `AppFailure`
   so the screen can show a snackbar.
@@ -91,20 +94,26 @@ View -> ViewModel -> UseCase -> Repository interface
 
 ## Drift notes (important)
 
-- `AppDatabase` lives in `lib/core/database/app_database.dart`, schema version 2.
+- `AppDatabase` lives in `lib/core/database/app_database.dart`, schema version 3.
   Tables: `Categories` (id, unique name, icon key, createdAt), `Expenses`
-  (id, amountCents, categoryId FK, note, date, createdAt, updatedAt), and
+  (id, amountCents, categoryId FK, note, date, createdAt, updatedAt),
   `SavingsEntries` (id, amountCents, isWithdrawal, note, date, createdAt,
-  updatedAt). Upgrading from version 1 creates the savings table.
+  updatedAt), `IncomeCategories` (id, unique name, icon key, createdAt), and
+  `Incomes` (id, amountCents, categoryId FK, note, date, createdAt, updatedAt).
+  Upgrading from version 2 creates the income tables and seeds their defaults;
+  upgrading from version 1 also creates the savings table.
 - Money is stored as `int` cents (`amountCents`), never a double. The app uses
   Myanmar Kyat (MMK): format with `formatCents` (`K 1,234` / `K 1,234.50`) and
   parse user input with `parseAmountToCents` (`core/utils/money.dart`).
   `formatCentsForInput` produces the editable value for the edit form.
-- Seven default categories are seeded in `onCreate`; the category-management
-  screen can add, rename, re-icon, and delete unused categories. Deletion is
-  blocked when expenses reference the category or it is the last category.
-- Keep category icon keys in sync with `core/utils/category_icons.dart`.
-  `categoryIconOptions` is the picker list.
+- Seven default expense categories and six default income categories are seeded
+  in `onCreate`. Both category screens can add, rename, re-icon, and delete
+  unused categories. Deletion is blocked when entries reference the category or
+  it is the last category.
+- Expense and income categories are separate tables, so the same name can exist
+  in both lists. Keep category icon keys in sync with
+  `core/utils/category_icons.dart`. `categoryIconOptions` is the shared picker
+  list.
 - Foreign keys are enabled per connection in `beforeOpen` via
   `PRAGMA foreign_keys = ON`.
 - Bump `schemaVersion` and add an `onUpgrade` migration whenever the schema
@@ -119,11 +128,12 @@ View -> ViewModel -> UseCase -> Repository interface
   package release and `drift_worker.js` from the installed `drift` package.
   Update both when upgrading those packages.
 - Tests inject `AppDatabase.forTesting(NativeDatabase.memory())`; no real DB file
-  is touched. Widget tests override `expensesStreamProvider` and
-  `savingsStreamProvider` (and categories where needed) so they never open
-  SQLite.
-- The joined expense/category query lives in `ExpenseDao.watchAll()`; the
-  repository maps data models to domain entities. Do not leak `ExpenseRow`,
+  is touched. Widget tests override `expensesStreamProvider`,
+  `incomesStreamProvider`, and `savingsStreamProvider` (and category streams
+  where needed) so they never open SQLite.
+- The joined expense/category query lives in `ExpenseDao.watchAll()` and the
+  joined income/category query in `IncomeDao.watchAll()`; repositories map data
+  models to domain entities. Do not leak `ExpenseRow`, `IncomeRow`,
   `TypedResult`, or companions outside `data/`.
 
 ## Web and PWA notes
@@ -165,10 +175,11 @@ View -> ViewModel -> UseCase -> Repository interface
 
 ## Current scope
 
-Implemented: dashboard, expense add/edit/delete, Myanmar Kyat formatting,
-savings deposits/withdrawals with a running total, category add/edit/delete
-under Settings, theme switching, and a statistics placeholder. Not implemented
-yet: income, savings goals, budgets, statistics/charts, theme persistence,
-search, and export. Extend a feature by adding domain -> data -> providers ->
-ViewModel -> screen in that order, and only create folders/files that are
-actually used.
+Implemented: dashboard with income/expense balance, expense add/edit/delete,
+income add/edit/delete with its own categories, Myanmar Kyat formatting, savings
+deposits/withdrawals with a running total, expense and income category
+add/edit/delete under Settings, theme switching, and a statistics placeholder.
+Not implemented yet: savings goals, budgets, statistics/charts, theme
+persistence, search, and export. Extend a feature by adding domain -> data ->
+providers -> ViewModel -> screen in that order, and only create folders/files
+that are actually used.

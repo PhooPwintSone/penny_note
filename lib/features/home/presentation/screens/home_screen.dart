@@ -146,6 +146,9 @@ class HomeScreen extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        // All AppShell tabs stay mounted in an IndexedStack, so this FAB
+        // cannot share the default Hero tag with the other tab FABs.
+        heroTag: null,
         onPressed: () => _openAddExpense(context),
         tooltip: 'Add expense',
         child: const Icon(Icons.add_rounded),

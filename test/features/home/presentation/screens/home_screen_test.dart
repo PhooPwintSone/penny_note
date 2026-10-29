@@ -6,6 +6,9 @@ import 'package:penny_note/features/categories/domain/entities/category.dart';
 import 'package:penny_note/features/expenses/domain/entities/expense.dart';
 import 'package:penny_note/features/expenses/presentation/providers/expense_providers.dart';
 import 'package:penny_note/features/home/presentation/screens/home_screen.dart';
+import 'package:penny_note/features/income/domain/entities/income.dart';
+import 'package:penny_note/features/income/domain/entities/income_category.dart';
+import 'package:penny_note/features/income/presentation/providers/income_providers.dart';
 import 'package:penny_note/features/savings/domain/entities/savings_entry.dart';
 import 'package:penny_note/features/savings/presentation/providers/savings_providers.dart';
 
@@ -27,11 +30,21 @@ void main() {
       createdAt: DateTime(2026, 10, 27),
       updatedAt: DateTime(2026, 10, 27),
     );
+    final income = Income(
+      id: 1,
+      amountCents: 250000,
+      category: const IncomeCategory(id: 1, name: 'Salary', icon: 'payments'),
+      note: 'October salary',
+      date: DateTime(2026, 10, 27),
+      createdAt: DateTime(2026, 10, 27),
+      updatedAt: DateTime(2026, 10, 27),
+    );
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           expensesStreamProvider.overrideWith((ref) => Stream.value([expense])),
+          incomesStreamProvider.overrideWith((ref) => Stream.value([income])),
           savingsStreamProvider.overrideWith(
             (ref) => Stream.value(const <SavingsEntry>[]),
           ),
@@ -42,6 +55,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('K 12.50'), findsWidgets);
+    expect(find.text('K 2,500'), findsOneWidget);
+    expect(find.text('K 2,487.50'), findsOneWidget);
     expect(find.text('Food'), findsOneWidget);
     expect(find.text('Savings'), findsOneWidget);
     expect(find.text('Recent Expenses'), findsOneWidget);
