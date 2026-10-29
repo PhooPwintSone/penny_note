@@ -24,4 +24,7 @@ abstract interface class ExpenseRepository {
   });
 
   Future<void> deleteExpense(int id);
+
+  /// Returns the stored amount for validation before an edit or delete.
+  Future<int?> amountCentsById(int id);
 }

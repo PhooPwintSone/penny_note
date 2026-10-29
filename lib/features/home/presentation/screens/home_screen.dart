@@ -64,12 +64,14 @@ class HomeScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.xl),
                 BalanceCard(
                   balanceCents: state.balanceCents,
+                  cashBalanceCents: state.cashBalanceCents,
+                  savingsBalanceCents: state.savingsBalanceCents,
                   incomeCents: state.totalIncomeCents,
                   expenseCents: state.totalExpenseCents,
                 ),
                 const SizedBox(height: AppSpacing.md),
                 _SavingsShortcut(
-                  totalCents: state.totalSavingsCents,
+                  totalCents: state.savingsBalanceCents,
                   onTap: () => _openSavings(context),
                 ),
                 const SizedBox(height: AppSpacing.xl),

@@ -59,4 +59,11 @@ class ExpenseDao extends DatabaseAccessor<AppDatabase> with _$ExpenseDaoMixin {
     )..where((row) => row.id.equals(id))).go();
     return deleted > 0;
   }
+
+  Future<int?> amountCentsById(int id) async {
+    final row = await (select(
+      expenses,
+    )..where((row) => row.id.equals(id))).getSingleOrNull();
+    return row?.amountCents;
+  }
 }

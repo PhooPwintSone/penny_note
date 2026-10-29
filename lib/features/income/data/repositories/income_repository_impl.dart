@@ -75,4 +75,13 @@ class IncomeRepositoryImpl implements IncomeRepository {
       throw const DatabaseFailure('Could not update this income entry.');
     }
   }
+
+  @override
+  Future<int?> amountCentsById(int id) async {
+    try {
+      return await _localDataSource.amountCentsById(id);
+    } catch (_) {
+      throw const DatabaseFailure('Could not read that income entry.');
+    }
+  }
 }

@@ -67,4 +67,6 @@ class ExpenseLocalDataSource {
       throw const DatabaseFailure('That expense no longer exists.');
     }
   }
+
+  Future<int?> amountCentsById(int id) => _dao.amountCentsById(id);
 }

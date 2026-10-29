@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:penny_note/core/theme/app_theme.dart';
+import 'package:penny_note/features/accounts/domain/entities/financial_summary.dart';
+import 'package:penny_note/features/accounts/presentation/providers/account_providers.dart';
 import 'package:penny_note/features/categories/domain/entities/category.dart';
 import 'package:penny_note/features/categories/presentation/providers/category_providers.dart';
 import 'package:penny_note/features/expenses/domain/entities/expense.dart';
@@ -9,14 +11,25 @@ import 'package:penny_note/features/expenses/domain/repositories/expense_reposit
 import 'package:penny_note/features/expenses/presentation/providers/expense_providers.dart';
 import 'package:penny_note/features/expenses/presentation/screens/add_expense_screen.dart';
 
+import '../../../../support/fake_account_repository.dart';
+
 void main() {
   testWidgets('save button stores a valid expense', (tester) async {
     final repository = _FakeExpenseRepository();
+    final accounts = FakeAccountRepository(
+      summary: const FinancialSummary(
+        totalIncomeCents: 100000,
+        totalExpenseCents: 0,
+        cashBalanceCents: 100000,
+        savingsBalanceCents: 0,
+      ),
+    );
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           expenseRepositoryProvider.overrideWithValue(repository),
+          accountRepositoryProvider.overrideWithValue(accounts),
           categoriesStreamProvider.overrideWith(
             (ref) => Stream.value(const [
               Category(id: 1, name: 'Food', icon: 'restaurant'),
@@ -48,6 +61,14 @@ void main() {
     tester,
   ) async {
     final repository = _FakeExpenseRepository();
+    final accounts = FakeAccountRepository(
+      summary: const FinancialSummary(
+        totalIncomeCents: 100000,
+        totalExpenseCents: 0,
+        cashBalanceCents: 100000,
+        savingsBalanceCents: 0,
+      ),
+    );
     final expense = Expense(
       id: 7,
       amountCents: 1250,
@@ -62,6 +83,7 @@ void main() {
       ProviderScope(
         overrides: [
           expenseRepositoryProvider.overrideWithValue(repository),
+          accountRepositoryProvider.overrideWithValue(accounts),
           categoriesStreamProvider.overrideWith(
             (ref) => Stream.value(const [
               Category(id: 1, name: 'Food', icon: 'restaurant'),
@@ -139,4 +161,7 @@ class _FakeExpenseRepository implements ExpenseRepository {
 
   @override
   Future<void> deleteExpense(int id) async {}
+
+  @override
+  Future<int?> amountCentsById(int id) async => 1250;
 }

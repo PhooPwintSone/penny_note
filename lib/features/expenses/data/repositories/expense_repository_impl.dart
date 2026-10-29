@@ -75,4 +75,13 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       throw const DatabaseFailure('Could not update this expense.');
     }
   }
+
+  @override
+  Future<int?> amountCentsById(int id) async {
+    try {
+      return await _localDataSource.amountCentsById(id);
+    } catch (_) {
+      throw const DatabaseFailure('Could not read that expense.');
+    }
+  }
 }

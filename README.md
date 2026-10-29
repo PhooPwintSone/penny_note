@@ -2,30 +2,34 @@
 
 > Every penny has a story.
 
-Penny Note is a calm, private expense and income journal for Android, iOS, and
-the web.
+Penny Note is a calm, private expense, income, and savings journal for Android,
+iOS, and the web.
 It is **offline-first**: every entry stays in a local database on the device.
-There is no account, backend, analytics, or API. On the web, the app can be
+There is no sign-up, backend, analytics, or API. On the web, the app can be
 installed to the Home Screen and reopened without a network connection after its
 assets have been cached.
 
-This repository contains a complete local-first expense and income journal: the
-architecture, theme system, Drift database, dashboard, expense and income
-add/edit/delete, a savings ledger, and customizable categories. Amounts use
-Myanmar Kyat (MMK).
+This repository contains a complete local-first money journal: the architecture,
+theme system, Drift database, dashboard, expense and income add/edit/delete,
+built-in Cash and Savings accounts with transfers, and customizable categories.
+Amounts use Myanmar Kyat (MMK).
 
 ## What works today
 
-- **Home dashboard** — greeting, balance card with income and expense totals,
-  savings shortcut, recent expenses, and a friendly empty state. No placeholder
-  financial data.
+- **Home dashboard** — greeting, total balance plus cash, savings, income, and
+  expense totals, a savings shortcut, recent expenses, and a friendly empty
+  state. No placeholder financial data.
 - **Expenses** — add an expense (amount, category, note, date), edit it later,
-  see it instantly, and delete it with confirmation.
+  see it instantly, and delete it with confirmation. Expenses are paid from Cash
+  and are rejected when Cash does not have enough money.
 - **Income** — record income with its own categories, edit or delete entries,
-  and see the updated balance on the dashboard.
-- **Savings** — record deposits and withdrawals, see the running total, and
-  review or delete the savings history. Withdrawals cannot exceed the current
-  balance, and deleting a deposit cannot make savings negative.
+  and see the updated balance on the dashboard. Income increases Cash only.
+- **Savings** — transfer money between Cash and Savings, see the running savings
+  balance, and review or delete the transfer history. Transfers are atomic,
+  cannot overdraw the source account, and do not count as income or expense.
+- **Accounts** — Cash (the default) and Savings are built in and created
+  automatically, so there is nothing to configure before recording a
+  transaction.
 - **Expense categories** — create categories, rename them, change their icons,
   and delete unused ones. Categories referenced by expenses are protected so
   history stays intact; the last remaining category cannot be deleted.
@@ -35,8 +39,8 @@ Myanmar Kyat (MMK).
   (MMK), with thousands separators and decimals only when needed.
 - **Theme** — light, dark, and system modes with a custom Material 3 palette.
 - **Local persistence** — Drift + SQLite on native, Drift + WebAssembly/IndexedDB
-  on the web, reactive queries, seeded categories, foreign keys, and schema
-  migrations.
+  on the web, reactive queries, seeded accounts and categories, foreign keys,
+  and schema migrations.
 - **Web / PWA** — responsive phone, tablet, and desktop layouts, installable
   Home Screen metadata, and an offline app shell.
 - **Statistics** — UI placeholder for the next iteration.
@@ -92,10 +96,11 @@ lib/
 │   ├── utils/          money, date, and category-icon helpers
 │   └── widgets/        shared cards, empty states, responsive content
 ├── features/
+│   ├── accounts/       built-in Cash/Savings accounts and balance summary
 │   ├── expenses/       domain / data / presentation (add, edit, delete)
 │   ├── categories/     expense category CRUD
 │   ├── income/         income entries and income-category CRUD
-│   ├── savings/        deposit / withdrawal ledger and balance
+│   ├── savings/        Cash <-> Savings transfers and running balance
 │   ├── home/           dashboard screen, ViewModel, balance card
 │   ├── statistics/     placeholder screen
 │   └── settings/       theme selection, category management, about
@@ -117,14 +122,19 @@ web/
 1. The form updates `AddExpenseViewModel` (a Riverpod `Notifier`) with the
    current values or the expense being edited.
 2. Submit calls the `AddExpense` or `UpdateExpense` use case, which validates
-   amount, category, and note length.
+   amount, category, note length, and that Cash can cover the projected balance.
 3. The repository forwards it to `ExpenseLocalDataSource` and `ExpenseDao`.
 4. Drift inserts or updates the row and re-emits the joined watch query.
 5. `expensesStreamProvider` updates; Home and Expenses rebuild from the database.
 
 Income follows the same path through `AddIncomeViewModel`, the income use cases,
-`IncomeLocalDataSource`, and `IncomeDao`; Home watches the income stream too so
-the balance updates immediately.
+`IncomeLocalDataSource`, and `IncomeDao`; the shared balance summary re-emits so
+the dashboard updates immediately. Income edits and deletes are rejected if they
+would make Cash negative.
+
+Transfers use the same layers through `TransferDao`. Balance math lives in
+`AccountDao.watchSummary()` and is exposed as `FinancialSummary`, so screens and
+ViewModels never compute account balances themselves.
 
 Money is stored as **integer cents** (`amountCents`). This avoids floating-point
 rounding when totals are summed; formatting happens at the edge with
@@ -132,23 +142,45 @@ rounding when totals are summed; formatting happens at the edge with
 
 ## Database
 
-Schema version 3 contains:
+Schema version 4 contains:
 
+- `accounts` — `id`, unique stable `code` (`cash` or `savings`), display `name`,
+  `createdAt`
 - `categories` — `id`, unique `name`, icon key, `createdAt`
 - `expenses` — `id`, `amountCents`, `categoryId` (FK), `note`, `date`,
-  `createdAt`, `updatedAt`
-- `savings_entries` — `id`, `amountCents`, `isWithdrawal`, `note`, `date`,
   `createdAt`, `updatedAt`
 - `income_categories` — `id`, unique `name`, icon key, `createdAt`
 - `incomes` — `id`, `amountCents`, `categoryId` (FK), `note`, `date`,
   `createdAt`, `updatedAt`
+- `transfers` — `id`, `amountCents`, `fromAccountId` (FK), `toAccountId` (FK),
+  `note`, `date`, `createdAt`, `updatedAt`; constraints require a positive
+  amount and different source/destination accounts
 
 Seven default expense categories (Food, Transport, Shopping, Bills, Health,
 Coffee, Other) and six default income categories (Salary, Freelance, Business,
 Gifts, Interest, Other) are seeded on first launch so both forms are usable
-immediately. Upgrading from schema version 2 creates the income tables and seeds
-the default income categories; upgrading from version 1 also creates the savings
-table. Future schema changes belong in `onUpgrade`.
+immediately. The two built-in accounts are seeded idempotently on first launch
+and again in `beforeOpen`, using the unique `code` to prevent duplicates.
+
+Upgrading to version 4 creates the accounts and transfers tables, copies every
+legacy `savings_entries` row into `transfers` (deposits become Cash → Savings and
+withdrawals become Savings → Cash), then drops the legacy table. Existing
+amounts, notes, dates, expenses, income, and categories are preserved. Upgrading
+from version 2 also creates the income tables and seeds the default income
+categories; upgrading from version 1 does the same before the version 4 step.
+Future schema changes belong in `onUpgrade`.
+
+Balances are derived from the transaction tables, not stored:
+
+```text
+Cash    = income - expenses + transfers into Cash - transfers out of Cash
+Savings = transfers into Savings - transfers out of Savings
+Total   = Cash + Savings
+```
+
+Transfers are deliberately excluded from the income and expense totals, so
+moving money between accounts never changes Total. `AccountDao.watchSummary()`
+performs this calculation reactively and returns a `FinancialSummary`.
 
 On native platforms the database opens through `drift_flutter` and lives in the
 app documents directory. On the web, `AppDatabase` passes `DriftWebOptions`
@@ -249,8 +281,8 @@ dart run build_runner build --delete-conflicting-outputs
   provide a permanent-storage guarantee. There is no cloud backup yet.
 - Storage is origin-specific: `http://192.168.x.x:8080` and a deployed HTTPS
   domain have separate databases.
-- No network request is made for normal expense or income operations. Only the
-  initial app download (and browser update checks) use the network.
+- No network request is made for normal money operations. Only the initial app
+  download (and browser update checks) use the network.
 
 ## Tests
 
@@ -259,23 +291,35 @@ The suite covers:
 - money parsing and MMK formatting
 - add/update expense and income domain validation
 - Drift seeding, joins, inserts, updates, deletes, and reactive queries
-- schema version 3, the savings ledger, and income tables
+- schema version 4 migration from version 2, including legacy savings rows and
+  preserved expenses and categories
+- the two built-in accounts, Cash/Savings balance formulas, and transfer
+  directions
+- income increasing Cash, expenses decreasing Cash, and transfers leaving the
+  total unchanged
+- rejection of overspending, over-transferring, zero/negative amounts, and
+  invalid income edits or deletions without changing stored rows
+- editing and deleting expenses, income, and transfers while keeping every
+  balance correct
+- file-backed persistence across closing and reopening the database
 - expense and income category add/rename/delete rules, including used and
   last-category protection
-- savings deposits, withdrawals, balance limits, and safe deletion
-- dashboard empty/loaded states and income/expense balance totals
+- dashboard empty/loaded states and total/cash/savings/income/expense totals
 - expense and income list layout, edit actions, and delete affordances
 - the add/edit expense and income forms
 - app smoke test and light/dark theme switching
 - bottom navigation on phones and a navigation rail on larger screens
 
-Widget tests override the expense, income, and savings streams so they never open
-a real database file. Database and use-case tests use
-`NativeDatabase.memory()`.
+Widget tests override the expense, income, savings, and account-summary streams
+so they never open a real database file. Database and use-case tests use
+`NativeDatabase.memory()`; the persistence test uses a temporary SQLite file.
 
-The web build was exercised in Chrome with an iPhone-sized viewport. Actual
-iPhone Safari was not available in this environment, so verify Home Screen
-installation on your device.
+The web build was exercised in Chrome with an iPhone-sized viewport. A full
+browser refresh was also verified in Chrome: after adding income, an expense,
+and a Cash → Savings transfer, the dashboard still showed the same Total, Cash,
+Savings, Income, and Expense values after reload. Actual iPhone Safari was not
+available in this environment, so verify Home Screen installation on your
+device.
 
 ## Roadmap
 

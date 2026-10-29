@@ -1,30 +1,33 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/entities/savings_entry.dart';
+import '../../../accounts/presentation/providers/account_providers.dart';
+import '../../domain/entities/transfer.dart';
 import '../providers/savings_providers.dart';
 
 class SavingsState {
-  const SavingsState({required this.entries, required this.totalCents});
+  const SavingsState({required this.transfers, required this.totalCents});
 
-  final List<SavingsEntry> entries;
+  final List<Transfer> transfers;
+
+  /// The current Savings balance, calculated by the shared account summary.
   final int totalCents;
 
-  bool get isEmpty => entries.isEmpty;
+  bool get isEmpty => transfers.isEmpty;
 }
 
 class SavingsViewModel extends AsyncNotifier<SavingsState> {
   @override
   Future<SavingsState> build() async {
-    final entries = await ref.watch(savingsStreamProvider.future);
-    final total = entries.fold<int>(
-      0,
-      (sum, entry) => sum + entry.signedAmountCents,
+    final transfers = await ref.watch(transfersStreamProvider.future);
+    final summary = await ref.watch(financialSummaryStreamProvider.future);
+    return SavingsState(
+      transfers: transfers,
+      totalCents: summary.savingsBalanceCents,
     );
-    return SavingsState(entries: entries, totalCents: total);
   }
 
-  Future<void> deleteEntry(int id) {
-    return ref.read(deleteSavingsUseCaseProvider)(id);
+  Future<void> deleteTransfer(int id) {
+    return ref.read(deleteTransferUseCaseProvider)(id);
   }
 }
 

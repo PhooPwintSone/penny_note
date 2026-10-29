@@ -1,53 +1,29 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../accounts/domain/entities/financial_summary.dart';
+import '../../../accounts/presentation/providers/account_providers.dart';
 import '../../../expenses/domain/entities/expense.dart';
 import '../../../expenses/presentation/providers/expense_providers.dart';
-import '../../../income/domain/entities/income.dart';
-import '../../../income/presentation/providers/income_providers.dart';
-import '../../../savings/presentation/providers/savings_providers.dart';
 
 /// View state for the dashboard.
 ///
-/// Income and expense totals are independent; savings is a separate ledger
-/// shown as its own shortcut on the dashboard.
+/// All money figures come from [FinancialSummary], which is calculated from
+/// persisted income, expense, and transfer rows. The dashboard never keeps its
+/// own running balance.
 class HomeState {
-  const HomeState({
-    required this.totalIncomeCents,
-    required this.totalExpenseCents,
-    required this.totalSavingsCents,
-    required this.recentExpenses,
-  });
+  const HomeState({required this.summary, required this.recentExpenses});
 
   static const recentExpenseLimit = 3;
 
-  factory HomeState.fromData(
-    List<Expense> expenses,
-    List<Income> incomes, {
-    int totalSavingsCents = 0,
-  }) {
-    final totalExpenseCents = expenses.fold<int>(
-      0,
-      (total, expense) => total + expense.amountCents,
-    );
-    final totalIncomeCents = incomes.fold<int>(
-      0,
-      (total, income) => total + income.amountCents,
-    );
-
-    return HomeState(
-      totalIncomeCents: totalIncomeCents,
-      totalExpenseCents: totalExpenseCents,
-      totalSavingsCents: totalSavingsCents,
-      recentExpenses: expenses.take(recentExpenseLimit).toList(growable: false),
-    );
-  }
-
-  final int totalIncomeCents;
-  final int totalExpenseCents;
-  final int totalSavingsCents;
+  final FinancialSummary summary;
   final List<Expense> recentExpenses;
 
-  int get balanceCents => totalIncomeCents - totalExpenseCents;
+  int get totalIncomeCents => summary.totalIncomeCents;
+  int get totalExpenseCents => summary.totalExpenseCents;
+  int get cashBalanceCents => summary.cashBalanceCents;
+  int get savingsBalanceCents => summary.savingsBalanceCents;
+  int get balanceCents => summary.totalBalanceCents;
+
   bool get hasExpenses => recentExpenses.isNotEmpty;
 }
 
@@ -55,16 +31,12 @@ class HomeViewModel extends AsyncNotifier<HomeState> {
   @override
   Future<HomeState> build() async {
     final expenses = await ref.watch(expensesStreamProvider.future);
-    final incomes = await ref.watch(incomesStreamProvider.future);
-    final savings = await ref.watch(savingsStreamProvider.future);
-    final totalSavingsCents = savings.fold<int>(
-      0,
-      (total, entry) => total + entry.signedAmountCents,
-    );
-    return HomeState.fromData(
-      expenses,
-      incomes,
-      totalSavingsCents: totalSavingsCents,
+    final summary = await ref.watch(financialSummaryStreamProvider.future);
+    return HomeState(
+      summary: summary,
+      recentExpenses: expenses
+          .take(HomeState.recentExpenseLimit)
+          .toList(growable: false),
     );
   }
 }

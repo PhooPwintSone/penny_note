@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/database/daos/expense_dao.dart';
 import '../../../../core/database/database_provider.dart';
+import '../../../accounts/presentation/providers/account_providers.dart';
 import '../../data/datasources/expense_local_data_source.dart';
 import '../../data/repositories/expense_repository_impl.dart';
 import '../../domain/entities/expense.dart';
@@ -33,7 +34,10 @@ final watchExpensesUseCaseProvider = Provider<WatchExpenses>((ref) {
 });
 
 final addExpenseUseCaseProvider = Provider<AddExpense>((ref) {
-  return AddExpense(ref.watch(expenseRepositoryProvider));
+  return AddExpense(
+    ref.watch(expenseRepositoryProvider),
+    ref.watch(accountRepositoryProvider),
+  );
 });
 
 final deleteExpenseUseCaseProvider = Provider<DeleteExpense>((ref) {
@@ -41,7 +45,10 @@ final deleteExpenseUseCaseProvider = Provider<DeleteExpense>((ref) {
 });
 
 final updateExpenseUseCaseProvider = Provider<UpdateExpense>((ref) {
-  return UpdateExpense(ref.watch(expenseRepositoryProvider));
+  return UpdateExpense(
+    ref.watch(expenseRepositoryProvider),
+    ref.watch(accountRepositoryProvider),
+  );
 });
 
 /// Live expenses from SQLite. Drift re-runs the query after every write.

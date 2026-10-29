@@ -10,7 +10,7 @@ import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/responsive_content.dart';
 import '../../../../core/widgets/section_header.dart';
-import '../../domain/entities/savings_entry.dart';
+import '../../domain/entities/transfer.dart';
 import '../viewmodels/savings_view_model.dart';
 import 'add_savings_screen.dart';
 
@@ -72,14 +72,14 @@ class SavingsScreen extends ConsumerWidget {
                   ),
                   child: Column(
                     children: [
-                      for (var i = 0; i < state.entries.length; i++) ...[
+                      for (var i = 0; i < state.transfers.length; i++) ...[
                         if (i > 0) const Divider(),
                         _SavingsTile(
-                          entry: state.entries[i],
+                          transfer: state.transfers[i],
                           onDelete: () => _confirmAndDelete(
                             context,
                             ref,
-                            state.entries[i].id,
+                            state.transfers[i].id,
                           ),
                         ),
                       ],
@@ -135,7 +135,7 @@ class SavingsScreen extends ConsumerWidget {
     if (confirmed != true) return;
 
     try {
-      await ref.read(savingsViewModelProvider.notifier).deleteEntry(id);
+      await ref.read(savingsViewModelProvider.notifier).deleteTransfer(id);
     } on AppFailure catch (failure) {
       if (context.mounted) {
         ScaffoldMessenger.of(
@@ -206,16 +206,16 @@ class _SavingsSummary extends StatelessWidget {
 }
 
 class _SavingsTile extends StatelessWidget {
-  const _SavingsTile({required this.entry, required this.onDelete});
+  const _SavingsTile({required this.transfer, required this.onDelete});
 
-  final SavingsEntry entry;
+  final Transfer transfer;
   final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final isWithdrawal = entry.isWithdrawal;
+    final isWithdrawal = transfer.isWithdrawal;
     final amountColor = isWithdrawal
         ? context.pennyColors.expense
         : context.pennyColors.income;
@@ -245,16 +245,16 @@ class _SavingsTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isWithdrawal ? 'Withdrawn' : 'Added',
+                  isWithdrawal ? 'Savings to Cash' : 'Cash to Savings',
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  entry.note.isEmpty
-                      ? formatExpenseDate(entry.date)
-                      : '${entry.note} · ${formatExpenseDate(entry.date)}',
+                  transfer.note.isEmpty
+                      ? formatExpenseDate(transfer.date)
+                      : '${transfer.note} · ${formatExpenseDate(transfer.date)}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -266,7 +266,7 @@ class _SavingsTile extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.sm),
           Text(
-            '${isWithdrawal ? '−' : '+'} ${formatCents(entry.amountCents)}',
+            '${isWithdrawal ? '−' : '+'} ${formatCents(transfer.amountCents)}',
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w700,
               color: amountColor,

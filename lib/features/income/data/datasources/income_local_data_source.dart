@@ -64,4 +64,6 @@ class IncomeLocalDataSource {
       throw const DatabaseFailure('That income entry no longer exists.');
     }
   }
+
+  Future<int?> amountCentsById(int id) => _dao.amountCentsById(id);
 }

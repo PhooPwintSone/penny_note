@@ -765,12 +765,319 @@ class ExpensesCompanion extends UpdateCompanion<ExpenseRow> {
   }
 }
 
-class $SavingsEntriesTable extends SavingsEntries
-    with TableInfo<$SavingsEntriesTable, SavingsEntryRow> {
+class $AccountsTable extends Accounts
+    with TableInfo<$AccountsTable, AccountRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $SavingsEntriesTable(this.attachedDatabase, [this._alias]);
+  $AccountsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _codeMeta = const VerificationMeta('code');
+  @override
+  late final GeneratedColumn<String> code = GeneratedColumn<String>(
+    'code',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 32,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 64,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, code, name, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'accounts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AccountRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('code')) {
+      context.handle(
+        _codeMeta,
+        code.isAcceptableOrUnknown(data['code']!, _codeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_codeMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AccountRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AccountRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      code: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}code'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $AccountsTable createAlias(String alias) {
+    return $AccountsTable(attachedDatabase, alias);
+  }
+}
+
+class AccountRow extends DataClass implements Insertable<AccountRow> {
+  final int id;
+
+  /// Stable identifier: `cash` or `savings`.
+  final String code;
+
+  /// Display name shown in the UI.
+  final String name;
+  final DateTime createdAt;
+  const AccountRow({
+    required this.id,
+    required this.code,
+    required this.name,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['code'] = Variable<String>(code);
+    map['name'] = Variable<String>(name);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  AccountsCompanion toCompanion(bool nullToAbsent) {
+    return AccountsCompanion(
+      id: Value(id),
+      code: Value(code),
+      name: Value(name),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory AccountRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AccountRow(
+      id: serializer.fromJson<int>(json['id']),
+      code: serializer.fromJson<String>(json['code']),
+      name: serializer.fromJson<String>(json['name']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'code': serializer.toJson<String>(code),
+      'name': serializer.toJson<String>(name),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  AccountRow copyWith({
+    int? id,
+    String? code,
+    String? name,
+    DateTime? createdAt,
+  }) => AccountRow(
+    id: id ?? this.id,
+    code: code ?? this.code,
+    name: name ?? this.name,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  AccountRow copyWithCompanion(AccountsCompanion data) {
+    return AccountRow(
+      id: data.id.present ? data.id.value : this.id,
+      code: data.code.present ? data.code.value : this.code,
+      name: data.name.present ? data.name.value : this.name,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AccountRow(')
+          ..write('id: $id, ')
+          ..write('code: $code, ')
+          ..write('name: $name, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, code, name, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AccountRow &&
+          other.id == this.id &&
+          other.code == this.code &&
+          other.name == this.name &&
+          other.createdAt == this.createdAt);
+}
+
+class AccountsCompanion extends UpdateCompanion<AccountRow> {
+  final Value<int> id;
+  final Value<String> code;
+  final Value<String> name;
+  final Value<DateTime> createdAt;
+  const AccountsCompanion({
+    this.id = const Value.absent(),
+    this.code = const Value.absent(),
+    this.name = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  AccountsCompanion.insert({
+    this.id = const Value.absent(),
+    required String code,
+    required String name,
+    this.createdAt = const Value.absent(),
+  }) : code = Value(code),
+       name = Value(name);
+  static Insertable<AccountRow> custom({
+    Expression<int>? id,
+    Expression<String>? code,
+    Expression<String>? name,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (code != null) 'code': code,
+      if (name != null) 'name': name,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  AccountsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? code,
+    Value<String>? name,
+    Value<DateTime>? createdAt,
+  }) {
+    return AccountsCompanion(
+      id: id ?? this.id,
+      code: code ?? this.code,
+      name: name ?? this.name,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (code.present) {
+      map['code'] = Variable<String>(code.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AccountsCompanion(')
+          ..write('id: $id, ')
+          ..write('code: $code, ')
+          ..write('name: $name, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TransfersTable extends Transfers
+    with TableInfo<$TransfersTable, TransferRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TransfersTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -795,20 +1102,33 @@ class $SavingsEntriesTable extends SavingsEntries
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _isWithdrawalMeta = const VerificationMeta(
-    'isWithdrawal',
+  static const VerificationMeta _fromAccountIdMeta = const VerificationMeta(
+    'fromAccountId',
   );
   @override
-  late final GeneratedColumn<bool> isWithdrawal = GeneratedColumn<bool>(
-    'is_withdrawal',
+  late final GeneratedColumn<int> fromAccountId = GeneratedColumn<int>(
+    'from_account_id',
     aliasedName,
     false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_withdrawal" IN (0, 1))',
+      'REFERENCES accounts (id)',
     ),
-    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _toAccountIdMeta = const VerificationMeta(
+    'toAccountId',
+  );
+  @override
+  late final GeneratedColumn<int> toAccountId = GeneratedColumn<int>(
+    'to_account_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES accounts (id)',
+    ),
   );
   static const VerificationMeta _noteMeta = const VerificationMeta('note');
   @override
@@ -858,7 +1178,8 @@ class $SavingsEntriesTable extends SavingsEntries
   List<GeneratedColumn> get $columns => [
     id,
     amountCents,
-    isWithdrawal,
+    fromAccountId,
+    toAccountId,
     note,
     date,
     createdAt,
@@ -868,10 +1189,10 @@ class $SavingsEntriesTable extends SavingsEntries
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'savings_entries';
+  static const String $name = 'transfers';
   @override
   VerificationContext validateIntegrity(
-    Insertable<SavingsEntryRow> instance, {
+    Insertable<TransferRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -890,14 +1211,27 @@ class $SavingsEntriesTable extends SavingsEntries
     } else if (isInserting) {
       context.missing(_amountCentsMeta);
     }
-    if (data.containsKey('is_withdrawal')) {
+    if (data.containsKey('from_account_id')) {
       context.handle(
-        _isWithdrawalMeta,
-        isWithdrawal.isAcceptableOrUnknown(
-          data['is_withdrawal']!,
-          _isWithdrawalMeta,
+        _fromAccountIdMeta,
+        fromAccountId.isAcceptableOrUnknown(
+          data['from_account_id']!,
+          _fromAccountIdMeta,
         ),
       );
+    } else if (isInserting) {
+      context.missing(_fromAccountIdMeta);
+    }
+    if (data.containsKey('to_account_id')) {
+      context.handle(
+        _toAccountIdMeta,
+        toAccountId.isAcceptableOrUnknown(
+          data['to_account_id']!,
+          _toAccountIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_toAccountIdMeta);
     }
     if (data.containsKey('note')) {
       context.handle(
@@ -931,9 +1265,9 @@ class $SavingsEntriesTable extends SavingsEntries
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  SavingsEntryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+  TransferRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return SavingsEntryRow(
+    return TransferRow(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
@@ -942,9 +1276,13 @@ class $SavingsEntriesTable extends SavingsEntries
         DriftSqlType.int,
         data['${effectivePrefix}amount_cents'],
       )!,
-      isWithdrawal: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_withdrawal'],
+      fromAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}from_account_id'],
+      )!,
+      toAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}to_account_id'],
       )!,
       note: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -966,27 +1304,27 @@ class $SavingsEntriesTable extends SavingsEntries
   }
 
   @override
-  $SavingsEntriesTable createAlias(String alias) {
-    return $SavingsEntriesTable(attachedDatabase, alias);
+  $TransfersTable createAlias(String alias) {
+    return $TransfersTable(attachedDatabase, alias);
   }
 }
 
-class SavingsEntryRow extends DataClass implements Insertable<SavingsEntryRow> {
+class TransferRow extends DataClass implements Insertable<TransferRow> {
   final int id;
 
   /// Money is stored in minor units (cents) to avoid floating point rounding.
   final int amountCents;
-
-  /// `false` = money added to savings, `true` = money taken out.
-  final bool isWithdrawal;
+  final int fromAccountId;
+  final int toAccountId;
   final String note;
   final DateTime date;
   final DateTime createdAt;
   final DateTime updatedAt;
-  const SavingsEntryRow({
+  const TransferRow({
     required this.id,
     required this.amountCents,
-    required this.isWithdrawal,
+    required this.fromAccountId,
+    required this.toAccountId,
     required this.note,
     required this.date,
     required this.createdAt,
@@ -997,7 +1335,8 @@ class SavingsEntryRow extends DataClass implements Insertable<SavingsEntryRow> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['amount_cents'] = Variable<int>(amountCents);
-    map['is_withdrawal'] = Variable<bool>(isWithdrawal);
+    map['from_account_id'] = Variable<int>(fromAccountId);
+    map['to_account_id'] = Variable<int>(toAccountId);
     map['note'] = Variable<String>(note);
     map['date'] = Variable<DateTime>(date);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -1005,11 +1344,12 @@ class SavingsEntryRow extends DataClass implements Insertable<SavingsEntryRow> {
     return map;
   }
 
-  SavingsEntriesCompanion toCompanion(bool nullToAbsent) {
-    return SavingsEntriesCompanion(
+  TransfersCompanion toCompanion(bool nullToAbsent) {
+    return TransfersCompanion(
       id: Value(id),
       amountCents: Value(amountCents),
-      isWithdrawal: Value(isWithdrawal),
+      fromAccountId: Value(fromAccountId),
+      toAccountId: Value(toAccountId),
       note: Value(note),
       date: Value(date),
       createdAt: Value(createdAt),
@@ -1017,15 +1357,16 @@ class SavingsEntryRow extends DataClass implements Insertable<SavingsEntryRow> {
     );
   }
 
-  factory SavingsEntryRow.fromJson(
+  factory TransferRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return SavingsEntryRow(
+    return TransferRow(
       id: serializer.fromJson<int>(json['id']),
       amountCents: serializer.fromJson<int>(json['amountCents']),
-      isWithdrawal: serializer.fromJson<bool>(json['isWithdrawal']),
+      fromAccountId: serializer.fromJson<int>(json['fromAccountId']),
+      toAccountId: serializer.fromJson<int>(json['toAccountId']),
       note: serializer.fromJson<String>(json['note']),
       date: serializer.fromJson<DateTime>(json['date']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -1038,7 +1379,8 @@ class SavingsEntryRow extends DataClass implements Insertable<SavingsEntryRow> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'amountCents': serializer.toJson<int>(amountCents),
-      'isWithdrawal': serializer.toJson<bool>(isWithdrawal),
+      'fromAccountId': serializer.toJson<int>(fromAccountId),
+      'toAccountId': serializer.toJson<int>(toAccountId),
       'note': serializer.toJson<String>(note),
       'date': serializer.toJson<DateTime>(date),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -1046,32 +1388,37 @@ class SavingsEntryRow extends DataClass implements Insertable<SavingsEntryRow> {
     };
   }
 
-  SavingsEntryRow copyWith({
+  TransferRow copyWith({
     int? id,
     int? amountCents,
-    bool? isWithdrawal,
+    int? fromAccountId,
+    int? toAccountId,
     String? note,
     DateTime? date,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) => SavingsEntryRow(
+  }) => TransferRow(
     id: id ?? this.id,
     amountCents: amountCents ?? this.amountCents,
-    isWithdrawal: isWithdrawal ?? this.isWithdrawal,
+    fromAccountId: fromAccountId ?? this.fromAccountId,
+    toAccountId: toAccountId ?? this.toAccountId,
     note: note ?? this.note,
     date: date ?? this.date,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
-  SavingsEntryRow copyWithCompanion(SavingsEntriesCompanion data) {
-    return SavingsEntryRow(
+  TransferRow copyWithCompanion(TransfersCompanion data) {
+    return TransferRow(
       id: data.id.present ? data.id.value : this.id,
       amountCents: data.amountCents.present
           ? data.amountCents.value
           : this.amountCents,
-      isWithdrawal: data.isWithdrawal.present
-          ? data.isWithdrawal.value
-          : this.isWithdrawal,
+      fromAccountId: data.fromAccountId.present
+          ? data.fromAccountId.value
+          : this.fromAccountId,
+      toAccountId: data.toAccountId.present
+          ? data.toAccountId.value
+          : this.toAccountId,
       note: data.note.present ? data.note.value : this.note,
       date: data.date.present ? data.date.value : this.date,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -1081,10 +1428,11 @@ class SavingsEntryRow extends DataClass implements Insertable<SavingsEntryRow> {
 
   @override
   String toString() {
-    return (StringBuffer('SavingsEntryRow(')
+    return (StringBuffer('TransferRow(')
           ..write('id: $id, ')
           ..write('amountCents: $amountCents, ')
-          ..write('isWithdrawal: $isWithdrawal, ')
+          ..write('fromAccountId: $fromAccountId, ')
+          ..write('toAccountId: $toAccountId, ')
           ..write('note: $note, ')
           ..write('date: $date, ')
           ..write('createdAt: $createdAt, ')
@@ -1097,7 +1445,8 @@ class SavingsEntryRow extends DataClass implements Insertable<SavingsEntryRow> {
   int get hashCode => Object.hash(
     id,
     amountCents,
-    isWithdrawal,
+    fromAccountId,
+    toAccountId,
     note,
     date,
     createdAt,
@@ -1106,47 +1455,54 @@ class SavingsEntryRow extends DataClass implements Insertable<SavingsEntryRow> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is SavingsEntryRow &&
+      (other is TransferRow &&
           other.id == this.id &&
           other.amountCents == this.amountCents &&
-          other.isWithdrawal == this.isWithdrawal &&
+          other.fromAccountId == this.fromAccountId &&
+          other.toAccountId == this.toAccountId &&
           other.note == this.note &&
           other.date == this.date &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
 
-class SavingsEntriesCompanion extends UpdateCompanion<SavingsEntryRow> {
+class TransfersCompanion extends UpdateCompanion<TransferRow> {
   final Value<int> id;
   final Value<int> amountCents;
-  final Value<bool> isWithdrawal;
+  final Value<int> fromAccountId;
+  final Value<int> toAccountId;
   final Value<String> note;
   final Value<DateTime> date;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
-  const SavingsEntriesCompanion({
+  const TransfersCompanion({
     this.id = const Value.absent(),
     this.amountCents = const Value.absent(),
-    this.isWithdrawal = const Value.absent(),
+    this.fromAccountId = const Value.absent(),
+    this.toAccountId = const Value.absent(),
     this.note = const Value.absent(),
     this.date = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
-  SavingsEntriesCompanion.insert({
+  TransfersCompanion.insert({
     this.id = const Value.absent(),
     required int amountCents,
-    this.isWithdrawal = const Value.absent(),
+    required int fromAccountId,
+    required int toAccountId,
     this.note = const Value.absent(),
     required DateTime date,
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   }) : amountCents = Value(amountCents),
+       fromAccountId = Value(fromAccountId),
+       toAccountId = Value(toAccountId),
        date = Value(date);
-  static Insertable<SavingsEntryRow> custom({
+  static Insertable<TransferRow> custom({
     Expression<int>? id,
     Expression<int>? amountCents,
-    Expression<bool>? isWithdrawal,
+    Expression<int>? fromAccountId,
+    Expression<int>? toAccountId,
     Expression<String>? note,
     Expression<DateTime>? date,
     Expression<DateTime>? createdAt,
@@ -1155,7 +1511,8 @@ class SavingsEntriesCompanion extends UpdateCompanion<SavingsEntryRow> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (amountCents != null) 'amount_cents': amountCents,
-      if (isWithdrawal != null) 'is_withdrawal': isWithdrawal,
+      if (fromAccountId != null) 'from_account_id': fromAccountId,
+      if (toAccountId != null) 'to_account_id': toAccountId,
       if (note != null) 'note': note,
       if (date != null) 'date': date,
       if (createdAt != null) 'created_at': createdAt,
@@ -1163,19 +1520,21 @@ class SavingsEntriesCompanion extends UpdateCompanion<SavingsEntryRow> {
     });
   }
 
-  SavingsEntriesCompanion copyWith({
+  TransfersCompanion copyWith({
     Value<int>? id,
     Value<int>? amountCents,
-    Value<bool>? isWithdrawal,
+    Value<int>? fromAccountId,
+    Value<int>? toAccountId,
     Value<String>? note,
     Value<DateTime>? date,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
   }) {
-    return SavingsEntriesCompanion(
+    return TransfersCompanion(
       id: id ?? this.id,
       amountCents: amountCents ?? this.amountCents,
-      isWithdrawal: isWithdrawal ?? this.isWithdrawal,
+      fromAccountId: fromAccountId ?? this.fromAccountId,
+      toAccountId: toAccountId ?? this.toAccountId,
       note: note ?? this.note,
       date: date ?? this.date,
       createdAt: createdAt ?? this.createdAt,
@@ -1192,8 +1551,11 @@ class SavingsEntriesCompanion extends UpdateCompanion<SavingsEntryRow> {
     if (amountCents.present) {
       map['amount_cents'] = Variable<int>(amountCents.value);
     }
-    if (isWithdrawal.present) {
-      map['is_withdrawal'] = Variable<bool>(isWithdrawal.value);
+    if (fromAccountId.present) {
+      map['from_account_id'] = Variable<int>(fromAccountId.value);
+    }
+    if (toAccountId.present) {
+      map['to_account_id'] = Variable<int>(toAccountId.value);
     }
     if (note.present) {
       map['note'] = Variable<String>(note.value);
@@ -1212,10 +1574,11 @@ class SavingsEntriesCompanion extends UpdateCompanion<SavingsEntryRow> {
 
   @override
   String toString() {
-    return (StringBuffer('SavingsEntriesCompanion(')
+    return (StringBuffer('TransfersCompanion(')
           ..write('id: $id, ')
           ..write('amountCents: $amountCents, ')
-          ..write('isWithdrawal: $isWithdrawal, ')
+          ..write('fromAccountId: $fromAccountId, ')
+          ..write('toAccountId: $toAccountId, ')
           ..write('note: $note, ')
           ..write('date: $date, ')
           ..write('createdAt: $createdAt, ')
@@ -1990,14 +2353,16 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $ExpensesTable expenses = $ExpensesTable(this);
-  late final $SavingsEntriesTable savingsEntries = $SavingsEntriesTable(this);
+  late final $AccountsTable accounts = $AccountsTable(this);
+  late final $TransfersTable transfers = $TransfersTable(this);
   late final $IncomeCategoriesTable incomeCategories = $IncomeCategoriesTable(
     this,
   );
   late final $IncomesTable incomes = $IncomesTable(this);
   late final CategoryDao categoryDao = CategoryDao(this as AppDatabase);
   late final ExpenseDao expenseDao = ExpenseDao(this as AppDatabase);
-  late final SavingsDao savingsDao = SavingsDao(this as AppDatabase);
+  late final AccountDao accountDao = AccountDao(this as AppDatabase);
+  late final TransferDao transferDao = TransferDao(this as AppDatabase);
   late final IncomeCategoryDao incomeCategoryDao = IncomeCategoryDao(
     this as AppDatabase,
   );
@@ -2009,7 +2374,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     categories,
     expenses,
-    savingsEntries,
+    accounts,
+    transfers,
     incomeCategories,
     incomes,
   ];
@@ -2643,30 +3009,440 @@ typedef $$ExpensesTableProcessedTableManager =
       ExpenseRow,
       PrefetchHooks Function({bool categoryId})
     >;
-typedef $$SavingsEntriesTableCreateCompanionBuilder =
-    SavingsEntriesCompanion Function({
+typedef $$AccountsTableCreateCompanionBuilder =
+    AccountsCompanion Function({
+      Value<int> id,
+      required String code,
+      required String name,
+      Value<DateTime> createdAt,
+    });
+typedef $$AccountsTableUpdateCompanionBuilder =
+    AccountsCompanion Function({
+      Value<int> id,
+      Value<String> code,
+      Value<String> name,
+      Value<DateTime> createdAt,
+    });
+
+final class $$AccountsTableReferences
+    extends BaseReferences<_$AppDatabase, $AccountsTable, AccountRow> {
+  $$AccountsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$TransfersTable, List<TransferRow>>
+  _fromTransfersTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.transfers,
+    aliasName: 'accounts__id__transfers__from_account_id',
+  );
+
+  $$TransfersTableProcessedTableManager get fromTransfers {
+    final manager = $$TransfersTableTableManager(
+      $_db,
+      $_db.transfers,
+    ).filter((f) => f.fromAccountId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_fromTransfersTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$TransfersTable, List<TransferRow>>
+  _toTransfersTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.transfers,
+    aliasName: 'accounts__id__transfers__to_account_id',
+  );
+
+  $$TransfersTableProcessedTableManager get toTransfers {
+    final manager = $$TransfersTableTableManager(
+      $_db,
+      $_db.transfers,
+    ).filter((f) => f.toAccountId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_toTransfersTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$AccountsTableFilterComposer
+    extends Composer<_$AppDatabase, $AccountsTable> {
+  $$AccountsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get code => $composableBuilder(
+    column: $table.code,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> fromTransfers(
+    Expression<bool> Function($$TransfersTableFilterComposer f) f,
+  ) {
+    final $$TransfersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.transfers,
+      getReferencedColumn: (t) => t.fromAccountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TransfersTableFilterComposer(
+            $db: $db,
+            $table: $db.transfers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> toTransfers(
+    Expression<bool> Function($$TransfersTableFilterComposer f) f,
+  ) {
+    final $$TransfersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.transfers,
+      getReferencedColumn: (t) => t.toAccountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TransfersTableFilterComposer(
+            $db: $db,
+            $table: $db.transfers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$AccountsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AccountsTable> {
+  $$AccountsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get code => $composableBuilder(
+    column: $table.code,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AccountsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AccountsTable> {
+  $$AccountsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get code =>
+      $composableBuilder(column: $table.code, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  Expression<T> fromTransfers<T extends Object>(
+    Expression<T> Function($$TransfersTableAnnotationComposer a) f,
+  ) {
+    final $$TransfersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.transfers,
+      getReferencedColumn: (t) => t.fromAccountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TransfersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.transfers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> toTransfers<T extends Object>(
+    Expression<T> Function($$TransfersTableAnnotationComposer a) f,
+  ) {
+    final $$TransfersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.transfers,
+      getReferencedColumn: (t) => t.toAccountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TransfersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.transfers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$AccountsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AccountsTable,
+          AccountRow,
+          $$AccountsTableFilterComposer,
+          $$AccountsTableOrderingComposer,
+          $$AccountsTableAnnotationComposer,
+          $$AccountsTableCreateCompanionBuilder,
+          $$AccountsTableUpdateCompanionBuilder,
+          (AccountRow, $$AccountsTableReferences),
+          AccountRow,
+          PrefetchHooks Function({bool fromTransfers, bool toTransfers})
+        > {
+  $$AccountsTableTableManager(_$AppDatabase db, $AccountsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AccountsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AccountsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AccountsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> code = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => AccountsCompanion(
+                id: id,
+                code: code,
+                name: name,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String code,
+                required String name,
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => AccountsCompanion.insert(
+                id: id,
+                code: code,
+                name: name,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$AccountsTable, AccountRow>(table),
+                  $$AccountsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({fromTransfers = false, toTransfers = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (fromTransfers) db.transfers,
+                    if (toTransfers) db.transfers,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (fromTransfers)
+                        await $_getPrefetchedDataByColumns<
+                          AccountRow,
+                          $AccountsTable,
+                          TransferRow,
+                          $TransfersTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AccountsTableReferences
+                              ._fromTransfersTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AccountsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).fromTransfers,
+                          currentColumn: 'id',
+                          referencedColumn: 'from_account_id',
+                          typedResults: items,
+                        ),
+                      if (toTransfers)
+                        await $_getPrefetchedDataByColumns<
+                          AccountRow,
+                          $AccountsTable,
+                          TransferRow,
+                          $TransfersTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AccountsTableReferences
+                              ._toTransfersTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AccountsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).toTransfers,
+                          currentColumn: 'id',
+                          referencedColumn: 'to_account_id',
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$AccountsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AccountsTable,
+      AccountRow,
+      $$AccountsTableFilterComposer,
+      $$AccountsTableOrderingComposer,
+      $$AccountsTableAnnotationComposer,
+      $$AccountsTableCreateCompanionBuilder,
+      $$AccountsTableUpdateCompanionBuilder,
+      (AccountRow, $$AccountsTableReferences),
+      AccountRow,
+      PrefetchHooks Function({bool fromTransfers, bool toTransfers})
+    >;
+typedef $$TransfersTableCreateCompanionBuilder =
+    TransfersCompanion Function({
       Value<int> id,
       required int amountCents,
-      Value<bool> isWithdrawal,
+      required int fromAccountId,
+      required int toAccountId,
       Value<String> note,
       required DateTime date,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
-typedef $$SavingsEntriesTableUpdateCompanionBuilder =
-    SavingsEntriesCompanion Function({
+typedef $$TransfersTableUpdateCompanionBuilder =
+    TransfersCompanion Function({
       Value<int> id,
       Value<int> amountCents,
-      Value<bool> isWithdrawal,
+      Value<int> fromAccountId,
+      Value<int> toAccountId,
       Value<String> note,
       Value<DateTime> date,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
 
-class $$SavingsEntriesTableFilterComposer
-    extends Composer<_$AppDatabase, $SavingsEntriesTable> {
-  $$SavingsEntriesTableFilterComposer({
+final class $$TransfersTableReferences
+    extends BaseReferences<_$AppDatabase, $TransfersTable, TransferRow> {
+  $$TransfersTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $AccountsTable _fromAccountIdTable(_$AppDatabase db) =>
+      db.accounts.createAlias('transfers__from_account_id__accounts__id');
+
+  $$AccountsTableProcessedTableManager get fromAccountId {
+    final $_column = $_itemColumn<int>('from_account_id')!;
+
+    final manager = $$AccountsTableTableManager(
+      $_db,
+      $_db.accounts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_fromAccountIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $AccountsTable _toAccountIdTable(_$AppDatabase db) =>
+      db.accounts.createAlias('transfers__to_account_id__accounts__id');
+
+  $$AccountsTableProcessedTableManager get toAccountId {
+    final $_column = $_itemColumn<int>('to_account_id')!;
+
+    final manager = $$AccountsTableTableManager(
+      $_db,
+      $_db.accounts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_toAccountIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$TransfersTableFilterComposer
+    extends Composer<_$AppDatabase, $TransfersTable> {
+  $$TransfersTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2680,11 +3456,6 @@ class $$SavingsEntriesTableFilterComposer
 
   ColumnFilters<int> get amountCents => $composableBuilder(
     column: $table.amountCents,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get isWithdrawal => $composableBuilder(
-    column: $table.isWithdrawal,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2707,11 +3478,57 @@ class $$SavingsEntriesTableFilterComposer
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$AccountsTableFilterComposer get fromAccountId {
+    final $$AccountsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.fromAccountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableFilterComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AccountsTableFilterComposer get toAccountId {
+    final $$AccountsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.toAccountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableFilterComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
-class $$SavingsEntriesTableOrderingComposer
-    extends Composer<_$AppDatabase, $SavingsEntriesTable> {
-  $$SavingsEntriesTableOrderingComposer({
+class $$TransfersTableOrderingComposer
+    extends Composer<_$AppDatabase, $TransfersTable> {
+  $$TransfersTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2725,11 +3542,6 @@ class $$SavingsEntriesTableOrderingComposer
 
   ColumnOrderings<int> get amountCents => $composableBuilder(
     column: $table.amountCents,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get isWithdrawal => $composableBuilder(
-    column: $table.isWithdrawal,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2752,11 +3564,57 @@ class $$SavingsEntriesTableOrderingComposer
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$AccountsTableOrderingComposer get fromAccountId {
+    final $$AccountsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.fromAccountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableOrderingComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AccountsTableOrderingComposer get toAccountId {
+    final $$AccountsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.toAccountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableOrderingComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
-class $$SavingsEntriesTableAnnotationComposer
-    extends Composer<_$AppDatabase, $SavingsEntriesTable> {
-  $$SavingsEntriesTableAnnotationComposer({
+class $$TransfersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TransfersTable> {
+  $$TransfersTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2771,11 +3629,6 @@ class $$SavingsEntriesTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<bool> get isWithdrawal => $composableBuilder(
-    column: $table.isWithdrawal,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
 
@@ -2787,56 +3640,95 @@ class $$SavingsEntriesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$AccountsTableAnnotationComposer get fromAccountId {
+    final $$AccountsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.fromAccountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AccountsTableAnnotationComposer get toAccountId {
+    final $$AccountsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.toAccountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
-class $$SavingsEntriesTableTableManager
+class $$TransfersTableTableManager
     extends
         RootTableManager<
           _$AppDatabase,
-          $SavingsEntriesTable,
-          SavingsEntryRow,
-          $$SavingsEntriesTableFilterComposer,
-          $$SavingsEntriesTableOrderingComposer,
-          $$SavingsEntriesTableAnnotationComposer,
-          $$SavingsEntriesTableCreateCompanionBuilder,
-          $$SavingsEntriesTableUpdateCompanionBuilder,
-          (
-            SavingsEntryRow,
-            BaseReferences<
-              _$AppDatabase,
-              $SavingsEntriesTable,
-              SavingsEntryRow
-            >,
-          ),
-          SavingsEntryRow,
-          PrefetchHooks Function()
+          $TransfersTable,
+          TransferRow,
+          $$TransfersTableFilterComposer,
+          $$TransfersTableOrderingComposer,
+          $$TransfersTableAnnotationComposer,
+          $$TransfersTableCreateCompanionBuilder,
+          $$TransfersTableUpdateCompanionBuilder,
+          (TransferRow, $$TransfersTableReferences),
+          TransferRow,
+          PrefetchHooks Function({bool fromAccountId, bool toAccountId})
         > {
-  $$SavingsEntriesTableTableManager(
-    _$AppDatabase db,
-    $SavingsEntriesTable table,
-  ) : super(
+  $$TransfersTableTableManager(_$AppDatabase db, $TransfersTable table)
+    : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$SavingsEntriesTableFilterComposer($db: db, $table: table),
+              $$TransfersTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$SavingsEntriesTableOrderingComposer($db: db, $table: table),
+              $$TransfersTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$SavingsEntriesTableAnnotationComposer($db: db, $table: table),
+              $$TransfersTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 Value<int> amountCents = const Value.absent(),
-                Value<bool> isWithdrawal = const Value.absent(),
+                Value<int> fromAccountId = const Value.absent(),
+                Value<int> toAccountId = const Value.absent(),
                 Value<String> note = const Value.absent(),
                 Value<DateTime> date = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
-              }) => SavingsEntriesCompanion(
+              }) => TransfersCompanion(
                 id: id,
                 amountCents: amountCents,
-                isWithdrawal: isWithdrawal,
+                fromAccountId: fromAccountId,
+                toAccountId: toAccountId,
                 note: note,
                 date: date,
                 createdAt: createdAt,
@@ -2846,15 +3738,17 @@ class $$SavingsEntriesTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required int amountCents,
-                Value<bool> isWithdrawal = const Value.absent(),
+                required int fromAccountId,
+                required int toAccountId,
                 Value<String> note = const Value.absent(),
                 required DateTime date,
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
-              }) => SavingsEntriesCompanion.insert(
+              }) => TransfersCompanion.insert(
                 id: id,
                 amountCents: amountCents,
-                isWithdrawal: isWithdrawal,
+                fromAccountId: fromAccountId,
+                toAccountId: toAccountId,
                 note: note,
                 date: date,
                 createdAt: createdAt,
@@ -2863,36 +3757,83 @@ class $$SavingsEntriesTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable<$SavingsEntriesTable, SavingsEntryRow>(table),
-                  BaseReferences<
-                    _$AppDatabase,
-                    $SavingsEntriesTable,
-                    SavingsEntryRow
-                  >(db, table, e),
+                  e.readTable<$TransfersTable, TransferRow>(table),
+                  $$TransfersTableReferences(db, table, e),
                 ),
               )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback:
+              ({fromAccountId = false, toAccountId = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (fromAccountId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.fromAccountId,
+                                    referencedTable: $$TransfersTableReferences
+                                        ._fromAccountIdTable(db),
+                                    referencedColumn: $$TransfersTableReferences
+                                        ._fromAccountIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+                        if (toAccountId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.toAccountId,
+                                    referencedTable: $$TransfersTableReferences
+                                        ._toAccountIdTable(db),
+                                    referencedColumn: $$TransfersTableReferences
+                                        ._toAccountIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
         ),
       );
 }
 
-typedef $$SavingsEntriesTableProcessedTableManager =
+typedef $$TransfersTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $SavingsEntriesTable,
-      SavingsEntryRow,
-      $$SavingsEntriesTableFilterComposer,
-      $$SavingsEntriesTableOrderingComposer,
-      $$SavingsEntriesTableAnnotationComposer,
-      $$SavingsEntriesTableCreateCompanionBuilder,
-      $$SavingsEntriesTableUpdateCompanionBuilder,
-      (
-        SavingsEntryRow,
-        BaseReferences<_$AppDatabase, $SavingsEntriesTable, SavingsEntryRow>,
-      ),
-      SavingsEntryRow,
-      PrefetchHooks Function()
+      $TransfersTable,
+      TransferRow,
+      $$TransfersTableFilterComposer,
+      $$TransfersTableOrderingComposer,
+      $$TransfersTableAnnotationComposer,
+      $$TransfersTableCreateCompanionBuilder,
+      $$TransfersTableUpdateCompanionBuilder,
+      (TransferRow, $$TransfersTableReferences),
+      TransferRow,
+      PrefetchHooks Function({bool fromAccountId, bool toAccountId})
     >;
 typedef $$IncomeCategoriesTableCreateCompanionBuilder =
     IncomeCategoriesCompanion Function({
@@ -3543,8 +4484,10 @@ class $AppDatabaseManager {
       $$CategoriesTableTableManager(_db, _db.categories);
   $$ExpensesTableTableManager get expenses =>
       $$ExpensesTableTableManager(_db, _db.expenses);
-  $$SavingsEntriesTableTableManager get savingsEntries =>
-      $$SavingsEntriesTableTableManager(_db, _db.savingsEntries);
+  $$AccountsTableTableManager get accounts =>
+      $$AccountsTableTableManager(_db, _db.accounts);
+  $$TransfersTableTableManager get transfers =>
+      $$TransfersTableTableManager(_db, _db.transfers);
   $$IncomeCategoriesTableTableManager get incomeCategories =>
       $$IncomeCategoriesTableTableManager(_db, _db.incomeCategories);
   $$IncomesTableTableManager get incomes =>

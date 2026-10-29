@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:penny_note/app.dart';
+import 'package:penny_note/features/accounts/domain/entities/financial_summary.dart';
+import 'package:penny_note/features/accounts/presentation/providers/account_providers.dart';
 import 'package:penny_note/features/categories/domain/entities/category.dart';
 import 'package:penny_note/features/categories/presentation/providers/category_providers.dart';
 import 'package:penny_note/features/expenses/domain/entities/expense.dart';
 import 'package:penny_note/features/expenses/presentation/providers/expense_providers.dart';
 import 'package:penny_note/features/income/domain/entities/income.dart';
 import 'package:penny_note/features/income/presentation/providers/income_providers.dart';
-import 'package:penny_note/features/savings/domain/entities/savings_entry.dart';
-import 'package:penny_note/features/savings/presentation/providers/savings_providers.dart';
 
 void main() {
   testWidgets('dashboard renders the empty state without fake data', (
@@ -18,7 +18,7 @@ void main() {
     await tester.pumpWidget(_buildTestApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('Your Balance'), findsOneWidget);
+    expect(find.text('Total Balance'), findsOneWidget);
     expect(find.text('K 0'), findsWidgets);
     expect(find.text('No expenses yet.'), findsOneWidget);
   });
@@ -113,8 +113,8 @@ Widget _buildTestApp() {
       incomesStreamProvider.overrideWith(
         (ref) => Stream.value(const <Income>[]),
       ),
-      savingsStreamProvider.overrideWith(
-        (ref) => Stream.value(const <SavingsEntry>[]),
+      financialSummaryStreamProvider.overrideWith(
+        (ref) => Stream.value(FinancialSummary.empty),
       ),
     ],
     child: const PennyNoteApp(),

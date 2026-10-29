@@ -91,6 +91,9 @@ class AddExpenseViewModel extends Notifier<AddExpenseFormState> {
 
   /// Saves the expense. Returns `true` when the screen should close.
   Future<bool> submit() async {
+    // A rapid double-tap must not create two expenses.
+    if (state.isSaving) return false;
+
     final amountCents = state.amountCents;
     final categoryId = state.categoryId;
 

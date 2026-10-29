@@ -2,6 +2,9 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:penny_note/core/database/app_database.dart';
 import 'package:penny_note/core/errors/app_failure.dart';
+import 'package:penny_note/features/accounts/data/datasources/account_local_data_source.dart';
+import 'package:penny_note/features/accounts/data/repositories/account_repository_impl.dart';
+import 'package:penny_note/features/accounts/domain/repositories/account_repository.dart';
 import 'package:penny_note/features/income/data/datasources/income_category_local_data_source.dart';
 import 'package:penny_note/features/income/data/datasources/income_local_data_source.dart';
 import 'package:penny_note/features/income/data/repositories/income_category_repository_impl.dart';
@@ -18,6 +21,7 @@ import 'package:penny_note/features/income/domain/usecases/update_income_categor
 void main() {
   late AppDatabase database;
   late IncomeRepository incomeRepository;
+  late AccountRepository accountRepository;
   late IncomeCategoryRepository categoryRepository;
   late AddIncome addIncome;
   late UpdateIncome updateIncome;
@@ -31,12 +35,15 @@ void main() {
     incomeRepository = IncomeRepositoryImpl(
       IncomeLocalDataSource(database.incomeDao),
     );
+    accountRepository = AccountRepositoryImpl(
+      AccountLocalDataSource(database.accountDao),
+    );
     categoryRepository = IncomeCategoryRepositoryImpl(
       IncomeCategoryLocalDataSource(database.incomeCategoryDao),
     );
     addIncome = AddIncome(incomeRepository);
-    updateIncome = UpdateIncome(incomeRepository);
-    deleteIncome = DeleteIncome(incomeRepository);
+    updateIncome = UpdateIncome(incomeRepository, accountRepository);
+    deleteIncome = DeleteIncome(incomeRepository, accountRepository);
     addIncomeCategory = AddIncomeCategory(categoryRepository);
     updateIncomeCategory = UpdateIncomeCategory(categoryRepository);
     deleteIncomeCategory = DeleteIncomeCategory(categoryRepository);

@@ -1,7 +1,7 @@
 # AGENTS.md
 
-`penny_note` is an offline-first Flutter expense and income tracker: Riverpod 3
-for DI/state, Drift for local storage, Clean Architecture with MVVM
+`penny_note` is an offline-first Flutter expense, income, and savings tracker:
+Riverpod 3 for DI/state, Drift for local storage, Clean Architecture with MVVM
 presentation. It targets Android, iOS, and the web. No backend, no Firebase, no
 data API. See `README.md` for the product overview.
 
@@ -43,11 +43,13 @@ lib/
     widgets/                          AppCard, EmptyState, ResponsiveContent,
                                       SectionHeader
   features/
+    accounts/                         built-in Cash/Savings accounts and
+                                      FinancialSummary balance query
     expenses/                         domain + data + presentation
                                       (add, edit, delete)
     categories/                       expense category CRUD
     income/                           income entries + income-category CRUD
-    savings/                          deposit/withdrawal ledger
+    savings/                          Cash <-> Savings transfer ledger
     home/                             dashboard screen, ViewModel, balance card
     statistics/                       placeholder screen
     settings/                         theme, category management, about
@@ -67,6 +69,7 @@ View -> ViewModel -> UseCase -> Repository interface
 - `presentation/` owns providers, ViewModels, screens, widgets. UI never touches
   a DAO, database, or repository implementation directly.
 - Riverpod is the composition root: providers in
+  `features/accounts/presentation/providers/account_providers.dart`,
   `features/expenses/presentation/providers/expense_providers.dart`,
   `features/categories/presentation/providers/category_providers.dart`,
   `features/income/presentation/providers/income_providers.dart`,
@@ -86,7 +89,8 @@ View -> ViewModel -> UseCase -> Repository interface
 - `HomeViewModel`, `ExpensesViewModel`, `IncomesViewModel`, and
   `SavingsViewModel` are `AsyncNotifier`s that await their stream provider's
   `.future`, so every Drift emission rebuilds the UI state. `HomeViewModel`
-  watches expenses, income, and savings.
+  watches the centralized account summary, which covers expenses, income, and
+  transfers.
 - Drift is the source of truth. After add/edit/delete, do **not** manually
   mutate lists; the watched stream re-emits. Delete calls rethrow `AppFailure`
   so the screen can show a snackbar.
@@ -94,14 +98,32 @@ View -> ViewModel -> UseCase -> Repository interface
 
 ## Drift notes (important)
 
-- `AppDatabase` lives in `lib/core/database/app_database.dart`, schema version 3.
-  Tables: `Categories` (id, unique name, icon key, createdAt), `Expenses`
+- `AppDatabase` lives in `lib/core/database/app_database.dart`, schema version 4.
+  Tables: `Accounts` (id, unique stable code `cash`/`savings`, name, createdAt),
+  `Categories` (id, unique name, icon key, createdAt), `Expenses`
   (id, amountCents, categoryId FK, note, date, createdAt, updatedAt),
-  `SavingsEntries` (id, amountCents, isWithdrawal, note, date, createdAt,
-  updatedAt), `IncomeCategories` (id, unique name, icon key, createdAt), and
-  `Incomes` (id, amountCents, categoryId FK, note, date, createdAt, updatedAt).
-  Upgrading from version 2 creates the income tables and seeds their defaults;
-  upgrading from version 1 also creates the savings table.
+  `IncomeCategories` (id, unique name, icon key, createdAt), `Incomes`
+  (id, amountCents, categoryId FK, note, date, createdAt, updatedAt), and
+  `Transfers` (id, amountCents, fromAccountId FK, toAccountId FK, note, date,
+  createdAt, updatedAt; positive amount and different accounts).
+  Upgrading to version 4 creates accounts and transfers, copies legacy
+  `savings_entries` rows into `transfers` (deposits become Cash -> Savings,
+  withdrawals become Savings -> Cash), and drops the legacy table. Upgrading from
+  version 2 also creates the income tables and seeds their defaults; upgrading
+  from version 1 does the same before the version 4 step.
+- The two built-in accounts are seeded idempotently with `INSERT OR IGNORE` on
+  create, during the version 4 migration, and in `beforeOpen`. Keep their stable
+  `code` values; do not look them up by auto-increment id.
+- Balances are derived, never stored:
+  `Cash = income - expenses + transfers in - transfers out`,
+  `Savings = transfers in - transfers out`, and `Total = Cash + Savings`.
+  `AccountDao.watchSummary()` owns this query and returns `FinancialSummary`;
+  screens and ViewModels must not duplicate the math. Transfers are excluded from
+  income and expense totals.
+- Expense add/edit, income edit/delete, and transfer add/edit/delete validate
+  projected balances in their use cases. Invalid operations must leave the
+  original rows untouched. Form ViewModels also guard against repeated submit
+  taps.
 - Money is stored as `int` cents (`amountCents`), never a double. The app uses
   Myanmar Kyat (MMK): format with `formatCents` (`K 1,234` / `K 1,234.50`) and
   parse user input with `parseAmountToCents` (`core/utils/money.dart`).
@@ -129,12 +151,14 @@ View -> ViewModel -> UseCase -> Repository interface
   Update both when upgrading those packages.
 - Tests inject `AppDatabase.forTesting(NativeDatabase.memory())`; no real DB file
   is touched. Widget tests override `expensesStreamProvider`,
-  `incomesStreamProvider`, and `savingsStreamProvider` (and category streams
-  where needed) so they never open SQLite.
-- The joined expense/category query lives in `ExpenseDao.watchAll()` and the
-  joined income/category query in `IncomeDao.watchAll()`; repositories map data
-  models to domain entities. Do not leak `ExpenseRow`, `IncomeRow`,
-  `TypedResult`, or companions outside `data/`.
+  `incomesStreamProvider`, `savingsStreamProvider`, and
+  `financialSummaryStreamProvider` (and category streams where needed) so they
+  never open SQLite. The persistence test uses a temporary SQLite file.
+- The joined expense/category query lives in `ExpenseDao.watchAll()`, the joined
+  income/category query in `IncomeDao.watchAll()`, and the joined transfer/account
+  query in `TransferDao.watchAll()`; repositories map data models to domain
+  entities. Do not leak `ExpenseRow`, `IncomeRow`, `TransferRow`, `TypedResult`,
+  or companions outside `data/`.
 
 ## Web and PWA notes
 
@@ -175,11 +199,12 @@ View -> ViewModel -> UseCase -> Repository interface
 
 ## Current scope
 
-Implemented: dashboard with income/expense balance, expense add/edit/delete,
-income add/edit/delete with its own categories, Myanmar Kyat formatting, savings
-deposits/withdrawals with a running total, expense and income category
-add/edit/delete under Settings, theme switching, and a statistics placeholder.
-Not implemented yet: savings goals, budgets, statistics/charts, theme
-persistence, search, and export. Extend a feature by adding domain -> data ->
-providers -> ViewModel -> screen in that order, and only create folders/files
-that are actually used.
+Implemented: dashboard with total, cash, savings, income, and expense totals;
+expense add/edit/delete with Cash balance validation; income add/edit/delete
+with its own categories; Myanmar Kyat formatting; built-in Cash and Savings
+accounts; atomic Cash <-> Savings transfers with source-balance validation;
+expense and income category add/edit/delete under Settings; theme switching; and
+a statistics placeholder. Not implemented yet: savings goals, budgets,
+statistics/charts, theme persistence, search, and export. Extend a feature by
+adding domain -> data -> providers -> ViewModel -> screen in that order, and
+only create folders/files that are actually used.

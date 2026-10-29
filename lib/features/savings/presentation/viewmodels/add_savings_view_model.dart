@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/utils/money.dart';
+import '../../../accounts/domain/entities/account_type.dart';
 import '../providers/savings_providers.dart';
 
 class AddSavingsFormState {
@@ -16,6 +17,8 @@ class AddSavingsFormState {
 
   final String amountText;
   final String note;
+
+  /// `false` = Cash -> Savings, `true` = Savings -> Cash.
   final bool isWithdrawal;
   final DateTime date;
   final bool isSaving;
@@ -68,6 +71,9 @@ class AddSavingsViewModel extends Notifier<AddSavingsFormState> {
   }
 
   Future<bool> submit() async {
+    // A rapid double-tap must not create two transfers.
+    if (state.isSaving) return false;
+
     final amountCents = state.amountCents;
     if (amountCents == null) {
       state = state.copyWith(errorMessage: 'Enter an amount like 1,500.');
@@ -76,9 +82,10 @@ class AddSavingsViewModel extends Notifier<AddSavingsFormState> {
 
     state = state.copyWith(isSaving: true, clearError: true);
     try {
-      await ref.read(addSavingsUseCaseProvider)(
+      await ref.read(addTransferUseCaseProvider)(
         amountCents: amountCents,
-        isWithdrawal: state.isWithdrawal,
+        from: state.isWithdrawal ? AccountType.savings : AccountType.cash,
+        to: state.isWithdrawal ? AccountType.cash : AccountType.savings,
         note: state.note,
         date: state.date,
       );
@@ -89,7 +96,7 @@ class AddSavingsViewModel extends Notifier<AddSavingsFormState> {
     } catch (_) {
       state = state.copyWith(
         isSaving: false,
-        errorMessage: 'Could not save this savings entry.',
+        errorMessage: 'Could not save this transfer.',
       );
       return false;
     }

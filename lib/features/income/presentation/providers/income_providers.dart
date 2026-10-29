@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/database/daos/income_dao.dart';
 import '../../../../core/database/database_provider.dart';
+import '../../../accounts/presentation/providers/account_providers.dart';
 import '../../data/datasources/income_local_data_source.dart';
 import '../../data/repositories/income_repository_impl.dart';
 import '../../domain/entities/income.dart';
@@ -37,11 +38,17 @@ final addIncomeUseCaseProvider = Provider<AddIncome>((ref) {
 });
 
 final updateIncomeUseCaseProvider = Provider<UpdateIncome>((ref) {
-  return UpdateIncome(ref.watch(incomeRepositoryProvider));
+  return UpdateIncome(
+    ref.watch(incomeRepositoryProvider),
+    ref.watch(accountRepositoryProvider),
+  );
 });
 
 final deleteIncomeUseCaseProvider = Provider<DeleteIncome>((ref) {
-  return DeleteIncome(ref.watch(incomeRepositoryProvider));
+  return DeleteIncome(
+    ref.watch(incomeRepositoryProvider),
+    ref.watch(accountRepositoryProvider),
+  );
 });
 
 /// Live income entries from SQLite. Drift re-runs the query after every write.

@@ -11,11 +11,15 @@ class BalanceCard extends StatelessWidget {
   const BalanceCard({
     super.key,
     required this.balanceCents,
+    required this.cashBalanceCents,
+    required this.savingsBalanceCents,
     required this.incomeCents,
     required this.expenseCents,
   });
 
   final int balanceCents;
+  final int cashBalanceCents;
+  final int savingsBalanceCents;
   final int incomeCents;
   final int expenseCents;
 
@@ -38,7 +42,7 @@ class BalanceCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Your Balance',
+                  'Total Balance',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: onCard.withValues(alpha: 0.75),
                   ),
@@ -60,7 +64,31 @@ class BalanceCard extends StatelessWidget {
               style: theme.textTheme.displaySmall?.copyWith(color: onCard),
             ),
           ),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.lg),
+          Row(
+            children: [
+              Expanded(
+                child: _Summary(
+                  label: 'Remaining',
+                  amountCents: cashBalanceCents,
+                  icon: Icons.account_balance_wallet_outlined,
+                  color: onCard,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(
+                child: _Summary(
+                  label: 'Savings',
+                  amountCents: savingsBalanceCents,
+                  icon: Icons.savings_outlined,
+                  color: onCard,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Container(height: 1, color: onCard.withValues(alpha: 0.2)),
+          const SizedBox(height: AppSpacing.lg),
           Row(
             children: [
               Expanded(
@@ -70,11 +98,6 @@ class BalanceCard extends StatelessWidget {
                   icon: Icons.south_west_rounded,
                   color: onCard,
                 ),
-              ),
-              Container(
-                width: 1,
-                height: 32,
-                color: onCard.withValues(alpha: 0.2),
               ),
               const SizedBox(width: AppSpacing.lg),
               Expanded(

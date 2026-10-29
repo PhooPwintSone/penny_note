@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:penny_note/core/theme/app_theme.dart';
+import 'package:penny_note/features/accounts/domain/entities/financial_summary.dart';
+import 'package:penny_note/features/accounts/presentation/providers/account_providers.dart';
 import 'package:penny_note/features/income/domain/entities/income.dart';
 import 'package:penny_note/features/income/domain/entities/income_category.dart';
 import 'package:penny_note/features/income/domain/repositories/income_repository.dart';
@@ -9,14 +11,25 @@ import 'package:penny_note/features/income/presentation/providers/income_categor
 import 'package:penny_note/features/income/presentation/providers/income_providers.dart';
 import 'package:penny_note/features/income/presentation/screens/add_income_screen.dart';
 
+import '../../../../support/fake_account_repository.dart';
+
 void main() {
   testWidgets('save button stores a valid income entry', (tester) async {
     final repository = _FakeIncomeRepository();
+    final accounts = FakeAccountRepository(
+      summary: const FinancialSummary(
+        totalIncomeCents: 0,
+        totalExpenseCents: 0,
+        cashBalanceCents: 0,
+        savingsBalanceCents: 0,
+      ),
+    );
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           incomeRepositoryProvider.overrideWithValue(repository),
+          accountRepositoryProvider.overrideWithValue(accounts),
           incomeCategoriesStreamProvider.overrideWith(
             (ref) => Stream.value(const [
               IncomeCategory(id: 1, name: 'Salary', icon: 'payments'),
@@ -48,6 +61,14 @@ void main() {
     tester,
   ) async {
     final repository = _FakeIncomeRepository();
+    final accounts = FakeAccountRepository(
+      summary: const FinancialSummary(
+        totalIncomeCents: 100000,
+        totalExpenseCents: 0,
+        cashBalanceCents: 100000,
+        savingsBalanceCents: 0,
+      ),
+    );
     final income = Income(
       id: 7,
       amountCents: 1250,
@@ -62,6 +83,7 @@ void main() {
       ProviderScope(
         overrides: [
           incomeRepositoryProvider.overrideWithValue(repository),
+          accountRepositoryProvider.overrideWithValue(accounts),
           incomeCategoriesStreamProvider.overrideWith(
             (ref) => Stream.value(const [
               IncomeCategory(id: 1, name: 'Salary', icon: 'payments'),
@@ -139,4 +161,7 @@ class _FakeIncomeRepository implements IncomeRepository {
 
   @override
   Future<void> deleteIncome(int id) async {}
+
+  @override
+  Future<int?> amountCentsById(int id) async => 1250;
 }

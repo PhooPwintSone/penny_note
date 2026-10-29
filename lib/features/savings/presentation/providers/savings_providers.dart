@@ -1,39 +1,57 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/database/daos/savings_dao.dart';
+import '../../../../core/database/daos/transfer_dao.dart';
 import '../../../../core/database/database_provider.dart';
-import '../../data/datasources/savings_local_data_source.dart';
-import '../../data/repositories/savings_repository_impl.dart';
-import '../../domain/entities/savings_entry.dart';
-import '../../domain/repositories/savings_repository.dart';
-import '../../domain/usecases/add_savings.dart';
-import '../../domain/usecases/delete_savings.dart';
-import '../../domain/usecases/watch_savings.dart';
+import '../../../accounts/presentation/providers/account_providers.dart';
+import '../../data/datasources/transfer_local_data_source.dart';
+import '../../data/repositories/transfer_repository_impl.dart';
+import '../../domain/entities/transfer.dart';
+import '../../domain/repositories/transfer_repository.dart';
+import '../../domain/usecases/add_transfer.dart';
+import '../../domain/usecases/delete_transfer.dart';
+import '../../domain/usecases/update_transfer.dart';
+import '../../domain/usecases/watch_transfers.dart';
 
-final savingsDaoProvider = Provider<SavingsDao>((ref) {
-  return ref.watch(appDatabaseProvider).savingsDao;
+/// Dependency-injection graph for the savings transfer ledger.
+final transferDaoProvider = Provider<TransferDao>((ref) {
+  return ref.watch(appDatabaseProvider).transferDao;
 });
 
-final savingsLocalDataSourceProvider = Provider<SavingsLocalDataSource>((ref) {
-  return SavingsLocalDataSource(ref.watch(savingsDaoProvider));
+final transferLocalDataSourceProvider = Provider<TransferLocalDataSource>((
+  ref,
+) {
+  return TransferLocalDataSource(ref.watch(transferDaoProvider));
 });
 
-final savingsRepositoryProvider = Provider<SavingsRepository>((ref) {
-  return SavingsRepositoryImpl(ref.watch(savingsLocalDataSourceProvider));
+final transferRepositoryProvider = Provider<TransferRepository>((ref) {
+  return TransferRepositoryImpl(ref.watch(transferLocalDataSourceProvider));
 });
 
-final watchSavingsUseCaseProvider = Provider<WatchSavings>((ref) {
-  return WatchSavings(ref.watch(savingsRepositoryProvider));
+final watchTransfersUseCaseProvider = Provider<WatchTransfers>((ref) {
+  return WatchTransfers(ref.watch(transferRepositoryProvider));
 });
 
-final addSavingsUseCaseProvider = Provider<AddSavings>((ref) {
-  return AddSavings(ref.watch(savingsRepositoryProvider));
+final addTransferUseCaseProvider = Provider<AddTransfer>((ref) {
+  return AddTransfer(
+    ref.watch(transferRepositoryProvider),
+    ref.watch(accountRepositoryProvider),
+  );
 });
 
-final deleteSavingsUseCaseProvider = Provider<DeleteSavings>((ref) {
-  return DeleteSavings(ref.watch(savingsRepositoryProvider));
+final updateTransferUseCaseProvider = Provider<UpdateTransfer>((ref) {
+  return UpdateTransfer(
+    ref.watch(transferRepositoryProvider),
+    ref.watch(accountRepositoryProvider),
+  );
 });
 
-final savingsStreamProvider = StreamProvider<List<SavingsEntry>>((ref) {
-  return ref.watch(watchSavingsUseCaseProvider)();
+final deleteTransferUseCaseProvider = Provider<DeleteTransfer>((ref) {
+  return DeleteTransfer(
+    ref.watch(transferRepositoryProvider),
+    ref.watch(accountRepositoryProvider),
+  );
+});
+
+final transfersStreamProvider = StreamProvider<List<Transfer>>((ref) {
+  return ref.watch(watchTransfersUseCaseProvider)();
 });

@@ -13,23 +13,58 @@ void main() {
 
   tearDown(() => database.close());
 
-  test('uses schema version 3 with savings and income tables', () async {
-    expect(database.schemaVersion, 3);
+  test(
+    'uses schema version 4 and seeds exactly two built-in accounts',
+    () async {
+      expect(database.schemaVersion, 4);
 
-    await database.savingsDao.insertEntry(
-      SavingsEntriesCompanion.insert(
+      final accounts = await database.accountDao.watchAccounts().first;
+      expect(accounts, hasLength(2));
+      expect(
+        accounts.map((account) => account.code),
+        containsAll(['cash', 'savings']),
+      );
+
+      final incomeCategories = await database.incomeCategoryDao
+          .watchAll()
+          .first;
+      expect(
+        incomeCategories.map((category) => category.name),
+        containsAll(['Salary', 'Freelance', 'Business', 'Gifts', 'Interest']),
+      );
+    },
+  );
+
+  test('calculates balances from income, expenses, and transfers', () async {
+    final accounts = await database.accountDao.watchAccounts().first;
+    final cash = accounts.firstWhere((account) => account.code == 'cash');
+    final savings = accounts.firstWhere((account) => account.code == 'savings');
+    final incomeCategories = await database.incomeCategoryDao.watchAll().first;
+    final salary = incomeCategories.firstWhere(
+      (category) => category.name == 'Salary',
+    );
+
+    await database.incomeDao.insertIncome(
+      IncomesCompanion.insert(
+        amountCents: 1000,
+        categoryId: salary.id,
+        date: DateTime(2026, 10, 27),
+      ),
+    );
+    await database.transferDao.insertTransfer(
+      TransfersCompanion.insert(
         amountCents: 750,
+        fromAccountId: cash.id,
+        toAccountId: savings.id,
         date: DateTime(2026, 10, 27),
       ),
     );
 
-    expect(await database.savingsDao.totalCents(), 750);
-
-    final incomeCategories = await database.incomeCategoryDao.watchAll().first;
-    expect(
-      incomeCategories.map((category) => category.name),
-      containsAll(['Salary', 'Freelance', 'Business', 'Gifts', 'Interest']),
-    );
+    final summary = await database.accountDao.currentSummary();
+    expect(summary.totalIncomeCents, 1000);
+    expect(summary.totalExpenseCents, 0);
+    expect(summary.cashBalanceCents, 250);
+    expect(summary.savingsBalanceCents, 750);
   });
 
   test('seeds the default categories on first open', () async {

@@ -62,4 +62,11 @@ class IncomeDao extends DatabaseAccessor<AppDatabase> with _$IncomeDaoMixin {
     )..where((row) => row.id.equals(id))).go();
     return deleted > 0;
   }
+
+  Future<int?> amountCentsById(int id) async {
+    final row = await (select(
+      incomes,
+    )..where((row) => row.id.equals(id))).getSingleOrNull();
+    return row?.amountCents;
+  }
 }
