@@ -7,8 +7,10 @@ import 'daos/category_dao.dart';
 import 'daos/expense_dao.dart';
 import 'daos/income_category_dao.dart';
 import 'daos/income_dao.dart';
+import 'daos/settings_dao.dart';
 import 'daos/transfer_dao.dart';
 import 'tables/accounts.dart';
+import 'tables/app_settings.dart';
 import 'tables/categories.dart';
 import 'tables/expenses.dart';
 import 'tables/income_categories.dart';
@@ -25,6 +27,7 @@ part 'app_database.g.dart';
     Transfers,
     IncomeCategories,
     Incomes,
+    AppSettings,
   ],
   daos: [
     CategoryDao,
@@ -33,6 +36,7 @@ part 'app_database.g.dart';
     TransferDao,
     IncomeCategoryDao,
     IncomeDao,
+    SettingsDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -42,7 +46,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -52,6 +56,7 @@ class AppDatabase extends _$AppDatabase {
         await _seedDefaultCategories();
         await _seedDefaultIncomeCategories();
         await _seedDefaultAccounts();
+        await _seedDefaultAppSettings();
       },
       onUpgrade: (migrator, from, to) async {
         if (from < 3) {
@@ -65,6 +70,10 @@ class AppDatabase extends _$AppDatabase {
           await migrator.createTable(transfers);
           await _migrateSavingsEntries();
         }
+        if (from < 5) {
+          await migrator.createTable(appSettings);
+          await _seedDefaultAppSettings();
+        }
       },
       beforeOpen: (details) async {
         // SQLite requires foreign keys to be enabled on every connection.
@@ -72,6 +81,8 @@ class AppDatabase extends _$AppDatabase {
         // Keep the two built-in accounts present even if a previous launch was
         // interrupted. The unique code makes this idempotent.
         await _seedDefaultAccounts();
+        // A single settings row holds the selected currency.
+        await _seedDefaultAppSettings();
       },
     );
   }
@@ -131,6 +142,13 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(
       "INSERT OR IGNORE INTO accounts (code, name) "
       "VALUES ('cash', 'Cash'), ('savings', 'Savings')",
+    );
+  }
+
+  Future<void> _seedDefaultAppSettings() async {
+    await customStatement(
+      "INSERT OR IGNORE INTO app_settings (id, currency_code) "
+      "VALUES (1, 'MMK')",
     );
   }
 

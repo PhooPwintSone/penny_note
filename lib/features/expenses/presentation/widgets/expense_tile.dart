@@ -9,9 +9,10 @@ import '../../domain/entities/expense.dart';
 
 /// One row in the expense list or dashboard.
 class ExpenseTile extends StatelessWidget {
-  const ExpenseTile({super.key, required this.expense});
+  const ExpenseTile({super.key, required this.expense, required this.currency});
 
   final Expense expense;
+  final AppCurrency currency;
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +63,7 @@ class ExpenseTile extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.md),
           Text(
-            '− ${formatCents(expense.amountCents)}',
+            '− ${formatCents(expense.amountCents, currency)}',
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w700,
               color: context.pennyColors.expense,

@@ -6,6 +6,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/responsive_content.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../domain/entities/expense.dart';
 import '../viewmodels/expenses_view_model.dart';
 import '../widgets/expense_tile.dart';
@@ -17,6 +18,7 @@ class ExpensesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final expensesState = ref.watch(expensesViewModelProvider);
+    final currency = ref.watch(currencyProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -102,7 +104,12 @@ class ExpensesScreen extends ConsumerWidget {
                   ),
                   child: Row(
                     children: [
-                      Expanded(child: ExpenseTile(expense: expense)),
+                      Expanded(
+                        child: ExpenseTile(
+                          expense: expense,
+                          currency: currency,
+                        ),
+                      ),
                       PopupMenuButton<_ExpenseAction>(
                         tooltip: 'Expense options',
                         icon: Icon(

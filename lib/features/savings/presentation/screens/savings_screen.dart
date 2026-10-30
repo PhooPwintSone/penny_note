@@ -10,6 +10,7 @@ import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/responsive_content.dart';
 import '../../../../core/widgets/section_header.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../domain/entities/transfer.dart';
 import '../viewmodels/savings_view_model.dart';
 import 'add_savings_screen.dart';
@@ -20,6 +21,7 @@ class SavingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final savingsState = ref.watch(savingsViewModelProvider);
+    final currency = ref.watch(currencyProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Savings')),
@@ -48,7 +50,7 @@ class SavingsScreen extends ConsumerWidget {
               120,
             ),
             children: [
-              _SavingsSummary(totalCents: state.totalCents),
+              _SavingsSummary(totalCents: state.totalCents, currency: currency),
               const SizedBox(height: AppSpacing.xl),
               const SectionHeader(title: 'Savings activity'),
               if (state.isEmpty)
@@ -76,6 +78,7 @@ class SavingsScreen extends ConsumerWidget {
                         if (i > 0) const Divider(),
                         _SavingsTile(
                           transfer: state.transfers[i],
+                          currency: currency,
                           onDelete: () => _confirmAndDelete(
                             context,
                             ref,
@@ -147,9 +150,10 @@ class SavingsScreen extends ConsumerWidget {
 }
 
 class _SavingsSummary extends StatelessWidget {
-  const _SavingsSummary({required this.totalCents});
+  const _SavingsSummary({required this.totalCents, required this.currency});
 
   final int totalCents;
+  final AppCurrency currency;
 
   @override
   Widget build(BuildContext context) {
@@ -170,7 +174,7 @@ class _SavingsSummary extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Total saved',
+                  'Total saved · ${currency.code}',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: onCard.withValues(alpha: 0.75),
                   ),
@@ -188,7 +192,7 @@ class _SavingsSummary extends StatelessWidget {
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: Text(
-              formatCents(totalCents),
+              formatCents(totalCents, currency),
               style: theme.textTheme.displaySmall?.copyWith(color: onCard),
             ),
           ),
@@ -206,9 +210,14 @@ class _SavingsSummary extends StatelessWidget {
 }
 
 class _SavingsTile extends StatelessWidget {
-  const _SavingsTile({required this.transfer, required this.onDelete});
+  const _SavingsTile({
+    required this.transfer,
+    required this.currency,
+    required this.onDelete,
+  });
 
   final Transfer transfer;
+  final AppCurrency currency;
   final VoidCallback onDelete;
 
   @override
@@ -266,7 +275,8 @@ class _SavingsTile extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.sm),
           Text(
-            '${isWithdrawal ? '−' : '+'} ${formatCents(transfer.amountCents)}',
+            '${isWithdrawal ? '−' : '+'} '
+            '${formatCents(transfer.amountCents, currency)}',
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w700,
               color: amountColor,

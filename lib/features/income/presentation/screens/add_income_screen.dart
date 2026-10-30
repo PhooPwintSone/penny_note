@@ -6,6 +6,7 @@ import '../../../../core/utils/category_icons.dart';
 import '../../../../core/utils/date_formats.dart';
 import '../../../../core/utils/money.dart';
 import '../../../../core/widgets/responsive_content.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../domain/entities/income.dart';
 import '../providers/income_category_providers.dart';
 import '../viewmodels/add_income_view_model.dart';
@@ -51,6 +52,7 @@ class _AddIncomeScreenState extends ConsumerState<AddIncomeScreen> {
     final form = ref.watch(addIncomeViewModelProvider(widget.income));
     final viewModel = _viewModel;
     final categories = ref.watch(incomeCategoriesStreamProvider);
+    final currency = ref.watch(currencyProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -82,11 +84,11 @@ class _AddIncomeScreenState extends ConsumerState<AddIncomeScreen> {
                 textInputAction: TextInputAction.next,
                 onChanged: viewModel.setAmount,
                 style: theme.textTheme.headlineMedium,
-                decoration: const InputDecoration(
-                  labelText: 'Amount (MMK)',
-                  prefixText: '$currencySymbol ',
+                decoration: InputDecoration(
+                  labelText: 'Amount (${currency.code})',
+                  prefixText: '${currency.symbol} ',
                   hintText: '0',
-                  helperText: 'Myanmar Kyat',
+                  helperText: currency.name,
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),

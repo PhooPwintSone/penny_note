@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:penny_note/core/theme/app_theme.dart';
+import 'package:penny_note/core/utils/money.dart';
 import 'package:penny_note/features/accounts/domain/entities/financial_summary.dart';
 import 'package:penny_note/features/accounts/presentation/providers/account_providers.dart';
 import 'package:penny_note/features/categories/domain/entities/category.dart';
@@ -10,6 +11,7 @@ import 'package:penny_note/features/expenses/domain/entities/expense.dart';
 import 'package:penny_note/features/expenses/domain/repositories/expense_repository.dart';
 import 'package:penny_note/features/expenses/presentation/providers/expense_providers.dart';
 import 'package:penny_note/features/expenses/presentation/screens/add_expense_screen.dart';
+import 'package:penny_note/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../support/fake_account_repository.dart';
 
@@ -30,6 +32,7 @@ void main() {
         overrides: [
           expenseRepositoryProvider.overrideWithValue(repository),
           accountRepositoryProvider.overrideWithValue(accounts),
+          currencyProvider.overrideWithValue(AppCurrency.mmk),
           categoriesStreamProvider.overrideWith(
             (ref) => Stream.value(const [
               Category(id: 1, name: 'Food', icon: 'restaurant'),
@@ -43,6 +46,11 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+
+    final amountField = tester.widget<TextField>(find.byType(TextField).first);
+    expect(amountField.decoration?.labelText, 'Amount (MMK)');
+    expect(amountField.decoration?.prefixText, 'Ks ');
+    expect(amountField.decoration?.helperText, 'Myanmar Kyat');
 
     await tester.enterText(find.byType(TextField).first, '12.50');
     await tester.tap(find.byType(DropdownButtonFormField<int>));
@@ -84,6 +92,7 @@ void main() {
         overrides: [
           expenseRepositoryProvider.overrideWithValue(repository),
           accountRepositoryProvider.overrideWithValue(accounts),
+          currencyProvider.overrideWithValue(AppCurrency.mmk),
           categoriesStreamProvider.overrideWith(
             (ref) => Stream.value(const [
               Category(id: 1, name: 'Food', icon: 'restaurant'),

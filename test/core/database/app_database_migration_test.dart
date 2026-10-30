@@ -64,6 +64,9 @@ void main() {
       final database = AppDatabase.forTesting(executor);
       addTearDown(database.close);
 
+      final settings = await database.settingsDao.watchSettings().first;
+      expect(settings.currencyCode, 'MMK');
+
       final accounts = await database.accountDao.watchAccounts().first;
       expect(accounts, hasLength(2));
       expect(

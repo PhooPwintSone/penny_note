@@ -2348,6 +2348,210 @@ class IncomesCompanion extends UpdateCompanion<IncomeRow> {
   }
 }
 
+class $AppSettingsTable extends AppSettings
+    with TableInfo<$AppSettingsTable, AppSettingsRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AppSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _currencyCodeMeta = const VerificationMeta(
+    'currencyCode',
+  );
+  @override
+  late final GeneratedColumn<String> currencyCode = GeneratedColumn<String>(
+    'currency_code',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 3,
+      maxTextLength: 3,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('MMK'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, currencyCode];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'app_settings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AppSettingsRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('currency_code')) {
+      context.handle(
+        _currencyCodeMeta,
+        currencyCode.isAcceptableOrUnknown(
+          data['currency_code']!,
+          _currencyCodeMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AppSettingsRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AppSettingsRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      currencyCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency_code'],
+      )!,
+    );
+  }
+
+  @override
+  $AppSettingsTable createAlias(String alias) {
+    return $AppSettingsTable(attachedDatabase, alias);
+  }
+}
+
+class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
+  final int id;
+  final String currencyCode;
+  const AppSettingsRow({required this.id, required this.currencyCode});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['currency_code'] = Variable<String>(currencyCode);
+    return map;
+  }
+
+  AppSettingsCompanion toCompanion(bool nullToAbsent) {
+    return AppSettingsCompanion(
+      id: Value(id),
+      currencyCode: Value(currencyCode),
+    );
+  }
+
+  factory AppSettingsRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AppSettingsRow(
+      id: serializer.fromJson<int>(json['id']),
+      currencyCode: serializer.fromJson<String>(json['currencyCode']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'currencyCode': serializer.toJson<String>(currencyCode),
+    };
+  }
+
+  AppSettingsRow copyWith({int? id, String? currencyCode}) => AppSettingsRow(
+    id: id ?? this.id,
+    currencyCode: currencyCode ?? this.currencyCode,
+  );
+  AppSettingsRow copyWithCompanion(AppSettingsCompanion data) {
+    return AppSettingsRow(
+      id: data.id.present ? data.id.value : this.id,
+      currencyCode: data.currencyCode.present
+          ? data.currencyCode.value
+          : this.currencyCode,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppSettingsRow(')
+          ..write('id: $id, ')
+          ..write('currencyCode: $currencyCode')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, currencyCode);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AppSettingsRow &&
+          other.id == this.id &&
+          other.currencyCode == this.currencyCode);
+}
+
+class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
+  final Value<int> id;
+  final Value<String> currencyCode;
+  const AppSettingsCompanion({
+    this.id = const Value.absent(),
+    this.currencyCode = const Value.absent(),
+  });
+  AppSettingsCompanion.insert({
+    this.id = const Value.absent(),
+    this.currencyCode = const Value.absent(),
+  });
+  static Insertable<AppSettingsRow> custom({
+    Expression<int>? id,
+    Expression<String>? currencyCode,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (currencyCode != null) 'currency_code': currencyCode,
+    });
+  }
+
+  AppSettingsCompanion copyWith({Value<int>? id, Value<String>? currencyCode}) {
+    return AppSettingsCompanion(
+      id: id ?? this.id,
+      currencyCode: currencyCode ?? this.currencyCode,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (currencyCode.present) {
+      map['currency_code'] = Variable<String>(currencyCode.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppSettingsCompanion(')
+          ..write('id: $id, ')
+          ..write('currencyCode: $currencyCode')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2359,6 +2563,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this,
   );
   late final $IncomesTable incomes = $IncomesTable(this);
+  late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   late final CategoryDao categoryDao = CategoryDao(this as AppDatabase);
   late final ExpenseDao expenseDao = ExpenseDao(this as AppDatabase);
   late final AccountDao accountDao = AccountDao(this as AppDatabase);
@@ -2367,6 +2572,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this as AppDatabase,
   );
   late final IncomeDao incomeDao = IncomeDao(this as AppDatabase);
+  late final SettingsDao settingsDao = SettingsDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2378,6 +2584,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     transfers,
     incomeCategories,
     incomes,
+    appSettings,
   ];
 }
 
@@ -4476,6 +4683,145 @@ typedef $$IncomesTableProcessedTableManager =
       IncomeRow,
       PrefetchHooks Function({bool categoryId})
     >;
+typedef $$AppSettingsTableCreateCompanionBuilder =
+    AppSettingsCompanion Function({Value<int> id, Value<String> currencyCode});
+typedef $$AppSettingsTableUpdateCompanionBuilder =
+    AppSettingsCompanion Function({Value<int> id, Value<String> currencyCode});
+
+class $$AppSettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $AppSettingsTable> {
+  $$AppSettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currencyCode => $composableBuilder(
+    column: $table.currencyCode,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AppSettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AppSettingsTable> {
+  $$AppSettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currencyCode => $composableBuilder(
+    column: $table.currencyCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AppSettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AppSettingsTable> {
+  $$AppSettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get currencyCode => $composableBuilder(
+    column: $table.currencyCode,
+    builder: (column) => column,
+  );
+}
+
+class $$AppSettingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AppSettingsTable,
+          AppSettingsRow,
+          $$AppSettingsTableFilterComposer,
+          $$AppSettingsTableOrderingComposer,
+          $$AppSettingsTableAnnotationComposer,
+          $$AppSettingsTableCreateCompanionBuilder,
+          $$AppSettingsTableUpdateCompanionBuilder,
+          (
+            AppSettingsRow,
+            BaseReferences<_$AppDatabase, $AppSettingsTable, AppSettingsRow>,
+          ),
+          AppSettingsRow,
+          PrefetchHooks Function()
+        > {
+  $$AppSettingsTableTableManager(_$AppDatabase db, $AppSettingsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AppSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AppSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AppSettingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> currencyCode = const Value.absent(),
+              }) => AppSettingsCompanion(id: id, currencyCode: currencyCode),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> currencyCode = const Value.absent(),
+              }) => AppSettingsCompanion.insert(
+                id: id,
+                currencyCode: currencyCode,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$AppSettingsTable, AppSettingsRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $AppSettingsTable,
+                    AppSettingsRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AppSettingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AppSettingsTable,
+      AppSettingsRow,
+      $$AppSettingsTableFilterComposer,
+      $$AppSettingsTableOrderingComposer,
+      $$AppSettingsTableAnnotationComposer,
+      $$AppSettingsTableCreateCompanionBuilder,
+      $$AppSettingsTableUpdateCompanionBuilder,
+      (
+        AppSettingsRow,
+        BaseReferences<_$AppDatabase, $AppSettingsTable, AppSettingsRow>,
+      ),
+      AppSettingsRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4492,4 +4838,6 @@ class $AppDatabaseManager {
       $$IncomeCategoriesTableTableManager(_db, _db.incomeCategories);
   $$IncomesTableTableManager get incomes =>
       $$IncomesTableTableManager(_db, _db.incomes);
+  $$AppSettingsTableTableManager get appSettings =>
+      $$AppSettingsTableTableManager(_db, _db.appSettings);
 }

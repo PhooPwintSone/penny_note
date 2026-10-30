@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/date_formats.dart';
-import '../../../../core/utils/money.dart';
 import '../../../../core/widgets/responsive_content.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../viewmodels/add_savings_view_model.dart';
 
 class AddSavingsScreen extends ConsumerWidget {
@@ -14,6 +14,7 @@ class AddSavingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final form = ref.watch(addSavingsViewModelProvider);
     final viewModel = ref.read(addSavingsViewModelProvider.notifier);
+    final currency = ref.watch(currencyProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -64,11 +65,11 @@ class AddSavingsScreen extends ConsumerWidget {
                 textInputAction: TextInputAction.next,
                 onChanged: viewModel.setAmount,
                 style: theme.textTheme.headlineMedium,
-                decoration: const InputDecoration(
-                  labelText: 'Amount (MMK)',
-                  prefixText: '$currencySymbol ',
+                decoration: InputDecoration(
+                  labelText: 'Amount (${currency.code})',
+                  prefixText: '${currency.symbol} ',
                   hintText: '0',
-                  helperText: 'Myanmar Kyat',
+                  helperText: currency.name,
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -106,7 +107,9 @@ class AddSavingsScreen extends ConsumerWidget {
                 onPressed: form.isSaving
                     ? null
                     : () async {
-                        final saved = await viewModel.submit();
+                        final saved = await viewModel.submit(
+                          currency: currency,
+                        );
                         if (!context.mounted) return;
                         if (saved) {
                           Navigator.of(context).pop();

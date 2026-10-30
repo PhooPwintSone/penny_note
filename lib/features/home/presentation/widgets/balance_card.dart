@@ -15,6 +15,7 @@ class BalanceCard extends StatelessWidget {
     required this.savingsBalanceCents,
     required this.incomeCents,
     required this.expenseCents,
+    required this.currency,
   });
 
   final int balanceCents;
@@ -22,6 +23,7 @@ class BalanceCard extends StatelessWidget {
   final int savingsBalanceCents;
   final int incomeCents;
   final int expenseCents;
+  final AppCurrency currency;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +44,7 @@ class BalanceCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Total Balance',
+                  'Total Balance · ${currency.code}',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: onCard.withValues(alpha: 0.75),
                   ),
@@ -60,7 +62,7 @@ class BalanceCard extends StatelessWidget {
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: Text(
-              formatCents(balanceCents),
+              formatCents(balanceCents, currency),
               style: theme.textTheme.displaySmall?.copyWith(color: onCard),
             ),
           ),
@@ -73,6 +75,7 @@ class BalanceCard extends StatelessWidget {
                   amountCents: cashBalanceCents,
                   icon: Icons.account_balance_wallet_outlined,
                   color: onCard,
+                  currency: currency,
                 ),
               ),
               const SizedBox(width: AppSpacing.lg),
@@ -82,6 +85,7 @@ class BalanceCard extends StatelessWidget {
                   amountCents: savingsBalanceCents,
                   icon: Icons.savings_outlined,
                   color: onCard,
+                  currency: currency,
                 ),
               ),
             ],
@@ -97,6 +101,7 @@ class BalanceCard extends StatelessWidget {
                   amountCents: incomeCents,
                   icon: Icons.south_west_rounded,
                   color: onCard,
+                  currency: currency,
                 ),
               ),
               const SizedBox(width: AppSpacing.lg),
@@ -106,6 +111,7 @@ class BalanceCard extends StatelessWidget {
                   amountCents: expenseCents,
                   icon: Icons.north_east_rounded,
                   color: onCard,
+                  currency: currency,
                 ),
               ),
             ],
@@ -122,12 +128,14 @@ class _Summary extends StatelessWidget {
     required this.amountCents,
     required this.icon,
     required this.color,
+    required this.currency,
   });
 
   final String label;
   final int amountCents;
   final IconData icon;
   final Color color;
+  final AppCurrency currency;
 
   @override
   Widget build(BuildContext context) {
@@ -152,7 +160,7 @@ class _Summary extends StatelessWidget {
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  formatCents(amountCents),
+                  formatCents(amountCents, currency),
                   style: theme.textTheme.titleSmall?.copyWith(
                     color: color,
                     fontWeight: FontWeight.w700,

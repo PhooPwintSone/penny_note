@@ -9,9 +9,10 @@ import '../../domain/entities/income.dart';
 
 /// One row in the income list.
 class IncomeTile extends StatelessWidget {
-  const IncomeTile({super.key, required this.income});
+  const IncomeTile({super.key, required this.income, required this.currency});
 
   final Income income;
+  final AppCurrency currency;
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +64,7 @@ class IncomeTile extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.md),
           Text(
-            '+ ${formatCents(income.amountCents)}',
+            '+ ${formatCents(income.amountCents, currency)}',
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w700,
               color: amountColor,

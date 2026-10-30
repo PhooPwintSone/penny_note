@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/errors/app_failure.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/utils/money.dart';
@@ -10,6 +11,7 @@ import '../../../../core/widgets/responsive_content.dart';
 import '../../../../core/widgets/section_header.dart';
 import '../../../categories/presentation/screens/categories_screen.dart';
 import '../../../income/presentation/screens/income_categories_screen.dart';
+import '../providers/settings_providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -17,6 +19,9 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
+    final currency = ref.watch(currencyProvider);
+    final hasFinancialRecords =
+        ref.watch(hasFinancialRecordsStreamProvider).value ?? true;
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
 
@@ -66,6 +71,64 @@ class SettingsScreen extends ConsumerWidget {
                           .setThemeMode(selection.first);
                     },
                   ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            const SectionHeader(title: 'Currency'),
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: Icon(
+                      Icons.currency_exchange_rounded,
+                      color: colors.primary,
+                    ),
+                    title: const Text('Base currency'),
+                    subtitle: Text(
+                      '${currency.name} (${currency.code}) · ${currency.symbol}',
+                    ),
+                    trailing: Icon(
+                      hasFinancialRecords
+                          ? Icons.lock_outline_rounded
+                          : Icons.chevron_right_rounded,
+                    ),
+                    onTap: () => _openCurrencyPicker(
+                      context,
+                      ref,
+                      currency,
+                      hasFinancialRecords,
+                    ),
+                  ),
+                  if (hasFinancialRecords) ...[
+                    const Divider(height: 1),
+                    Padding(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.info_outline_rounded,
+                            size: 18,
+                            color: colors.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: Text(
+                              'Currency is locked because your journal already '
+                              'contains transactions. Changing it would require '
+                              'converting existing amounts.',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colors.onSurfaceVariant,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -152,7 +215,7 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.sm),
                   _AboutRow(
                     label: 'Currency',
-                    value: 'Myanmar Kyat ($currencyCode)',
+                    value: '${currency.name} (${currency.code})',
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   _AboutRow(label: 'Storage', value: 'On this device only'),
@@ -176,6 +239,190 @@ void _openIncomeCategories(BuildContext context) {
   Navigator.of(context).push(
     MaterialPageRoute<void>(builder: (_) => const IncomeCategoriesScreen()),
   );
+}
+
+Future<void> _openCurrencyPicker(
+  BuildContext context,
+  WidgetRef ref,
+  AppCurrency selected,
+  bool hasFinancialRecords,
+) async {
+  if (hasFinancialRecords) {
+    await _showCurrencyLockedDialog(context);
+    return;
+  }
+
+  final chosen = await showModalBottomSheet<AppCurrency>(
+    context: context,
+    showDragHandle: true,
+    isScrollControlled: true,
+    builder: (sheetContext) {
+      final theme = Theme.of(sheetContext);
+      final colors = theme.colorScheme;
+
+      return SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screenPadding,
+            0,
+            AppSpacing.screenPadding,
+            AppSpacing.xl,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Choose currency', style: theme.textTheme.titleLarge),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                'One currency applies to every account and transaction.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              for (final currency in AppCurrency.values) ...[
+                _CurrencyOption(
+                  currency: currency,
+                  selected: currency == selected,
+                  onTap: () => Navigator.of(sheetContext).pop(currency),
+                ),
+                if (currency != AppCurrency.values.last)
+                  const SizedBox(height: AppSpacing.xs),
+              ],
+            ],
+          ),
+        ),
+      );
+    },
+  );
+
+  if (chosen == null || chosen == selected) return;
+
+  try {
+    await ref.read(updateCurrencyUseCaseProvider)(chosen);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Currency changed to ${chosen.name} (${chosen.code}).'),
+      ),
+    );
+  } on AppFailure catch (failure) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(failure.message)));
+  }
+}
+
+Future<void> _showCurrencyLockedDialog(BuildContext context) {
+  return showDialog<void>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Currency is locked'),
+      content: const Text(
+        'Your journal already contains transactions. Changing the base '
+        'currency now would require converting every existing amount. To '
+        'protect your records, currency changes are disabled until a '
+        'conversion process is available.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: const Text('Got it'),
+        ),
+      ],
+    ),
+  );
+}
+
+class _CurrencyOption extends StatelessWidget {
+  const _CurrencyOption({
+    required this.currency,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final AppCurrency currency;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final titleColor = selected ? colors.onPrimaryContainer : colors.onSurface;
+    final subtitleColor = selected
+        ? colors.onPrimaryContainer.withValues(alpha: 0.8)
+        : colors.onSurfaceVariant;
+
+    return Material(
+      color: selected ? colors.primaryContainer : colors.surfaceContainerHigh,
+      borderRadius: BorderRadius.circular(AppSpacing.tileRadius),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? colors.primary
+                      : colors.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(AppSpacing.tileRadius),
+                ),
+                child: Text(
+                  currency.symbol,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: selected
+                        ? colors.onPrimary
+                        : colors.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      currency.name,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: titleColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${currency.code} · ${currency.symbol}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: subtitleColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (selected)
+                Icon(
+                  Icons.check_circle_rounded,
+                  color: colors.onPrimaryContainer,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _AboutRow extends StatelessWidget {

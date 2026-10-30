@@ -19,6 +19,7 @@ class AddTransfer {
     required AccountType to,
     required String note,
     required DateTime date,
+    AppCurrency currency = AppCurrency.mmk,
   }) async {
     if (amountCents <= 0) {
       throw const ValidationFailure('Enter an amount greater than zero.');
@@ -38,7 +39,7 @@ class AddTransfer {
     final availableCents = summary.balanceFor(from);
     if (amountCents > availableCents) {
       throw ValidationFailure(
-        'You only have ${formatCents(availableCents)} available in '
+        'You only have ${formatCents(availableCents, currency)} available in '
         '${from.label}.',
       );
     }

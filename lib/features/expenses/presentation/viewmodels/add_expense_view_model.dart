@@ -90,7 +90,7 @@ class AddExpenseViewModel extends Notifier<AddExpenseFormState> {
   }
 
   /// Saves the expense. Returns `true` when the screen should close.
-  Future<bool> submit() async {
+  Future<bool> submit({AppCurrency currency = AppCurrency.mmk}) async {
     // A rapid double-tap must not create two expenses.
     if (state.isSaving) return false;
 
@@ -115,6 +115,7 @@ class AddExpenseViewModel extends Notifier<AddExpenseFormState> {
           categoryId: categoryId,
           note: state.note,
           date: state.date,
+          currency: currency,
         );
       } else {
         await ref.read(updateExpenseUseCaseProvider)(
@@ -123,6 +124,7 @@ class AddExpenseViewModel extends Notifier<AddExpenseFormState> {
           categoryId: categoryId,
           note: state.note,
           date: state.date,
+          currency: currency,
         );
       }
       return true;

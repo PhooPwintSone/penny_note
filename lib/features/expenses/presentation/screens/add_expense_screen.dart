@@ -7,6 +7,7 @@ import '../../../../core/utils/date_formats.dart';
 import '../../../../core/utils/money.dart';
 import '../../../../core/widgets/responsive_content.dart';
 import '../../../categories/presentation/providers/category_providers.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../domain/entities/expense.dart';
 import '../viewmodels/add_expense_view_model.dart';
 
@@ -51,6 +52,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     final form = ref.watch(addExpenseViewModelProvider(widget.expense));
     final viewModel = _viewModel;
     final categories = ref.watch(categoriesStreamProvider);
+    final currency = ref.watch(currencyProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -82,11 +84,11 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                 textInputAction: TextInputAction.next,
                 onChanged: viewModel.setAmount,
                 style: theme.textTheme.headlineMedium,
-                decoration: const InputDecoration(
-                  labelText: 'Amount (MMK)',
-                  prefixText: '$currencySymbol ',
+                decoration: InputDecoration(
+                  labelText: 'Amount (${currency.code})',
+                  prefixText: '${currency.symbol} ',
                   hintText: '0',
-                  helperText: 'Myanmar Kyat',
+                  helperText: currency.name,
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
@@ -160,7 +162,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                 onPressed: form.isSaving
                     ? null
                     : () async {
-                        final saved = await viewModel.submit();
+                        final saved = await viewModel.submit(
+                          currency: currency,
+                        );
                         if (!context.mounted) return;
                         if (saved) {
                           Navigator.of(context).pop();

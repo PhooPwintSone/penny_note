@@ -6,6 +6,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/responsive_content.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../domain/entities/income.dart';
 import '../viewmodels/incomes_view_model.dart';
 import '../widgets/income_tile.dart';
@@ -17,6 +18,7 @@ class IncomesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final incomesState = ref.watch(incomesViewModelProvider);
+    final currency = ref.watch(currencyProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -102,7 +104,9 @@ class IncomesScreen extends ConsumerWidget {
                   ),
                   child: Row(
                     children: [
-                      Expanded(child: IncomeTile(income: income)),
+                      Expanded(
+                        child: IncomeTile(income: income, currency: currency),
+                      ),
                       PopupMenuButton<_IncomeAction>(
                         tooltip: 'Income options',
                         icon: Icon(

@@ -11,6 +11,7 @@ import '../../../../core/widgets/section_header.dart';
 import '../../../expenses/presentation/screens/add_expense_screen.dart';
 import '../../../expenses/presentation/widgets/expense_tile.dart';
 import '../../../savings/presentation/screens/savings_screen.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../viewmodels/home_view_model.dart';
 import '../widgets/balance_card.dart';
 
@@ -20,6 +21,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final homeState = ref.watch(homeViewModelProvider);
+    final currency = ref.watch(currencyProvider);
     final now = DateTime.now();
 
     return Scaffold(
@@ -68,10 +70,12 @@ class HomeScreen extends ConsumerWidget {
                   savingsBalanceCents: state.savingsBalanceCents,
                   incomeCents: state.totalIncomeCents,
                   expenseCents: state.totalExpenseCents,
+                  currency: currency,
                 ),
                 const SizedBox(height: AppSpacing.md),
                 _SavingsShortcut(
                   totalCents: state.savingsBalanceCents,
+                  currency: currency,
                   onTap: () => _openSavings(context),
                 ),
                 const SizedBox(height: AppSpacing.xl),
@@ -137,7 +141,10 @@ class HomeScreen extends ConsumerWidget {
                           i++
                         ) ...[
                           if (i > 0) const Divider(),
-                          ExpenseTile(expense: state.recentExpenses[i]),
+                          ExpenseTile(
+                            expense: state.recentExpenses[i],
+                            currency: currency,
+                          ),
                         ],
                       ],
                     ),
@@ -172,9 +179,14 @@ class HomeScreen extends ConsumerWidget {
 }
 
 class _SavingsShortcut extends StatelessWidget {
-  const _SavingsShortcut({required this.totalCents, required this.onTap});
+  const _SavingsShortcut({
+    required this.totalCents,
+    required this.currency,
+    required this.onTap,
+  });
 
   final int totalCents;
+  final AppCurrency currency;
   final VoidCallback onTap;
 
   @override
@@ -219,7 +231,7 @@ class _SavingsShortcut extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.sm),
           Text(
-            formatCents(totalCents),
+            formatCents(totalCents, currency),
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w700,
             ),

@@ -14,9 +14,12 @@ void main() {
   tearDown(() => database.close());
 
   test(
-    'uses schema version 4 and seeds exactly two built-in accounts',
+    'uses schema version 5 and seeds exactly two built-in accounts',
     () async {
-      expect(database.schemaVersion, 4);
+      expect(database.schemaVersion, 5);
+
+      final settings = await database.settingsDao.watchSettings().first;
+      expect(settings.currencyCode, 'MMK');
 
       final accounts = await database.accountDao.watchAccounts().first;
       expect(accounts, hasLength(2));

@@ -70,7 +70,7 @@ class AddSavingsViewModel extends Notifier<AddSavingsFormState> {
     state = state.copyWith(date: date);
   }
 
-  Future<bool> submit() async {
+  Future<bool> submit({AppCurrency currency = AppCurrency.mmk}) async {
     // A rapid double-tap must not create two transfers.
     if (state.isSaving) return false;
 
@@ -88,6 +88,7 @@ class AddSavingsViewModel extends Notifier<AddSavingsFormState> {
         to: state.isWithdrawal ? AccountType.cash : AccountType.savings,
         note: state.note,
         date: state.date,
+        currency: currency,
       );
       return true;
     } on AppFailure catch (failure) {

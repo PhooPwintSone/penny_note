@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:penny_note/core/theme/app_theme.dart';
+import 'package:penny_note/core/utils/money.dart';
 import 'package:penny_note/features/income/domain/entities/income.dart';
 import 'package:penny_note/features/income/domain/entities/income_category.dart';
 import 'package:penny_note/features/income/presentation/providers/income_providers.dart';
 import 'package:penny_note/features/income/presentation/screens/incomes_screen.dart';
+import 'package:penny_note/features/settings/presentation/providers/settings_providers.dart';
 
 void main() {
   testWidgets('income list fits a narrow phone and exposes edit/delete', (
@@ -30,6 +32,7 @@ void main() {
       ProviderScope(
         overrides: [
           incomesStreamProvider.overrideWith((ref) => Stream.value([income])),
+          currencyProvider.overrideWithValue(AppCurrency.usd),
         ],
         child: MaterialApp(theme: AppTheme.light, home: const IncomesScreen()),
       ),
@@ -39,6 +42,7 @@ void main() {
     expect(find.text('1 entry'), findsOneWidget);
     expect(find.byTooltip('Income options'), findsOneWidget);
     expect(find.text('Salary'), findsOneWidget);
+    expect(find.text(r'+ $ 1,234.56'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

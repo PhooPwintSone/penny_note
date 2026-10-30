@@ -20,6 +20,7 @@ class UpdateExpense {
     required int categoryId,
     required String note,
     required DateTime date,
+    AppCurrency currency = AppCurrency.mmk,
   }) async {
     if (id <= 0) {
       throw const ValidationFailure('That expense could not be found.');
@@ -45,7 +46,7 @@ class UpdateExpense {
     if (amountCents > availableCents) {
       throw ValidationFailure(
         'This expense is more than your available Cash '
-        '(${formatCents(availableCents)}).',
+        '(${formatCents(availableCents, currency)}).',
       );
     }
 

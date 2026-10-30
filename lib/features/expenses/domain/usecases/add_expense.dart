@@ -21,6 +21,7 @@ class AddExpense {
     required int categoryId,
     required String note,
     required DateTime date,
+    AppCurrency currency = AppCurrency.mmk,
   }) async {
     if (amountCents <= 0) {
       throw const ValidationFailure('Enter an amount greater than zero.');
@@ -36,8 +37,8 @@ class AddExpense {
     final summary = await _accounts.currentSummary();
     if (amountCents > summary.cashBalanceCents) {
       throw ValidationFailure(
-        'You only have ${formatCents(summary.cashBalanceCents)} available '
-        'in Cash.',
+        'You only have '
+        '${formatCents(summary.cashBalanceCents, currency)} available in Cash.',
       );
     }
 
