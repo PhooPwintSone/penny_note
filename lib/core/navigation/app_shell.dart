@@ -66,6 +66,8 @@ class _AppShellState extends State<AppShell> {
     final content = IndexedStack(index: _selectedIndex, children: _screens);
     final shortestSide = MediaQuery.sizeOf(context).shortestSide;
     final useRail = shortestSide >= 600;
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
 
     return Scaffold(
       body: useRail
@@ -73,6 +75,19 @@ class _AppShellState extends State<AppShell> {
               children: [
                 SafeArea(
                   child: NavigationRail(
+                    backgroundColor: colors.surface,
+                    indicatorColor: colors.primary.withValues(alpha: 0.12),
+                    selectedIconTheme: IconThemeData(color: colors.primary),
+                    unselectedIconTheme: IconThemeData(
+                      color: colors.onSurfaceVariant,
+                    ),
+                    selectedLabelTextStyle: theme.textTheme.labelMedium
+                        ?.copyWith(
+                          color: colors.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                    unselectedLabelTextStyle: theme.textTheme.labelMedium
+                        ?.copyWith(color: colors.onSurfaceVariant),
                     selectedIndex: _selectedIndex,
                     onDestinationSelected: _selectDestination,
                     labelType: NavigationRailLabelType.all,
@@ -86,24 +101,34 @@ class _AppShellState extends State<AppShell> {
                     ],
                   ),
                 ),
-                const VerticalDivider(width: 1),
+                VerticalDivider(width: 1, color: colors.outlineVariant),
                 Expanded(child: content),
               ],
             )
           : content,
       bottomNavigationBar: useRail
           ? null
-          : NavigationBar(
-              selectedIndex: _selectedIndex,
-              onDestinationSelected: _selectDestination,
-              destinations: [
-                for (final destination in _destinations)
-                  NavigationDestination(
-                    icon: Icon(destination.icon),
-                    selectedIcon: Icon(destination.selectedIcon),
-                    label: destination.label,
-                  ),
-              ],
+          : Container(
+              decoration: BoxDecoration(
+                color: colors.surface,
+                border: Border(
+                  top: BorderSide(color: colors.outline, width: 1),
+                ),
+              ),
+              child: NavigationBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                selectedIndex: _selectedIndex,
+                onDestinationSelected: _selectDestination,
+                destinations: [
+                  for (final destination in _destinations)
+                    NavigationDestination(
+                      icon: Icon(destination.icon),
+                      selectedIcon: Icon(destination.selectedIcon),
+                      label: destination.label,
+                    ),
+                ],
+              ),
             ),
     );
   }

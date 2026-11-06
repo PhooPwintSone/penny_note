@@ -20,24 +20,33 @@ class EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = theme.colorScheme;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 64,
-          height: 64,
+          width: 68,
+          height: 68,
           decoration: BoxDecoration(
-            color: theme.colorScheme.primary.withValues(alpha: 0.1),
+            color: colors.tertiary.withValues(alpha: 0.12),
             shape: BoxShape.circle,
+            border: Border.all(color: colors.tertiary.withValues(alpha: 0.35)),
+            boxShadow: [
+              BoxShadow(
+                color: colors.shadow.withValues(alpha: 0.06),
+                blurRadius: 18,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-          child: Icon(icon, size: 30, color: theme.colorScheme.primary),
+          child: Icon(icon, size: 30, color: colors.primary),
         ),
         const SizedBox(height: AppSpacing.lg),
         Text(
           title,
           textAlign: TextAlign.center,
-          style: theme.textTheme.titleMedium,
+          style: theme.textTheme.titleMedium?.copyWith(letterSpacing: 0.1),
         ),
         if (message != null) ...[
           const SizedBox(height: AppSpacing.sm),
@@ -45,8 +54,8 @@ class EmptyState extends StatelessWidget {
             message!,
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              height: 1.5,
+              color: colors.onSurfaceVariant,
+              height: 1.55,
             ),
           ),
         ],

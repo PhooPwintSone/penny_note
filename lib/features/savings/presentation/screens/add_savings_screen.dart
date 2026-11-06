@@ -16,6 +16,7 @@ class AddSavingsScreen extends ConsumerWidget {
     final viewModel = ref.read(addSavingsViewModelProvider.notifier);
     final currency = ref.watch(currencyProvider);
     final theme = Theme.of(context);
+    final colors = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Add savings')),
@@ -55,6 +56,15 @@ class AddSavingsScreen extends ConsumerWidget {
                     ? 'How much are you taking out?'
                     : 'How much are you setting aside?',
                 style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Container(
+                width: 28,
+                height: 1.5,
+                decoration: BoxDecoration(
+                  color: colors.tertiary.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
               const SizedBox(height: AppSpacing.md),
               TextField(

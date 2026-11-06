@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/empty_state.dart';
 
 class StatisticsScreen extends StatelessWidget {
@@ -11,14 +12,20 @@ class StatisticsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Statistics')),
       body: Center(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.xl),
-          child: EmptyState(
-            icon: Icons.insights_rounded,
-            title: 'Insights are on the way',
-            message:
-                'Monthly totals and category breakdowns will appear here '
-                'once you have a few expenses recorded.',
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: AppCard(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: const EmptyState(
+                icon: Icons.insights_rounded,
+                title: 'Insights are on the way',
+                message:
+                    'Monthly totals and category breakdowns will appear here '
+                    'once you have a few expenses recorded.',
+              ),
+            ),
           ),
         ),
       ),

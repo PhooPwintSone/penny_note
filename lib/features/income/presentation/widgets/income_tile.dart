@@ -30,6 +30,7 @@ class IncomeTile extends StatelessWidget {
             decoration: BoxDecoration(
               color: amountColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppSpacing.tileRadius),
+              border: Border.all(color: amountColor.withValues(alpha: 0.2)),
             ),
             child: Icon(
               categoryIconFor(income.category.icon),

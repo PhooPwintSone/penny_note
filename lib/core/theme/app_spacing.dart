@@ -10,6 +10,6 @@ abstract final class AppSpacing {
   static const xxl = 32.0;
 
   static const screenPadding = 20.0;
-  static const cardRadius = 20.0;
+  static const cardRadius = 24.0;
   static const tileRadius = 14.0;
 }

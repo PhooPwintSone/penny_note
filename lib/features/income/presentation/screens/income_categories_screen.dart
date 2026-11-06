@@ -82,9 +82,14 @@ class IncomeCategoriesScreen extends ConsumerWidget {
                         decoration: BoxDecoration(
                           color: Theme.of(
                             context,
-                          ).colorScheme.primary.withValues(alpha: 0.1),
+                          ).colorScheme.tertiary.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(
                             AppSpacing.tileRadius,
+                          ),
+                          border: Border.all(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.tertiary.withValues(alpha: 0.3),
                           ),
                         ),
                         child: Icon(

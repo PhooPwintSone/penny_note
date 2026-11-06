@@ -188,12 +188,14 @@ class _IconOption extends StatelessWidget {
           height: 56,
           decoration: BoxDecoration(
             color: selected
-                ? colors.primary.withValues(alpha: 0.12)
-                : colors.surfaceContainerHighest.withValues(alpha: 0.45),
+                ? colors.tertiary.withValues(alpha: 0.14)
+                : colors.surfaceContainerHighest.withValues(alpha: 0.35),
             borderRadius: BorderRadius.circular(AppSpacing.tileRadius),
             border: Border.all(
-              color: selected ? colors.primary : Colors.transparent,
-              width: 2,
+              color: selected
+                  ? colors.tertiary
+                  : colors.outlineVariant.withValues(alpha: 0.55),
+              width: selected ? 1.5 : 1,
             ),
           ),
           child: Icon(

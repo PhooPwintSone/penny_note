@@ -166,6 +166,14 @@ class _SavingsSummary extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.primaryContainer,
         borderRadius: BorderRadius.circular(AppSpacing.xl),
+        border: Border.all(color: colors.tertiary.withValues(alpha: 0.38)),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadow.withValues(alpha: 0.18),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,11 +188,7 @@ class _SavingsSummary extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(
-                Icons.savings_outlined,
-                size: 20,
-                color: onCard.withValues(alpha: 0.75),
-              ),
+              Icon(Icons.savings_outlined, size: 20, color: colors.tertiary),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -239,6 +243,7 @@ class _SavingsTile extends StatelessWidget {
             decoration: BoxDecoration(
               color: amountColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppSpacing.tileRadius),
+              border: Border.all(color: amountColor.withValues(alpha: 0.2)),
             ),
             child: Icon(
               isWithdrawal

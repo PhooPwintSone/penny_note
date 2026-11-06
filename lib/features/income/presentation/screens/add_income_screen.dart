@@ -54,6 +54,7 @@ class _AddIncomeScreenState extends ConsumerState<AddIncomeScreen> {
     final categories = ref.watch(incomeCategoriesStreamProvider);
     final currency = ref.watch(currencyProvider);
     final theme = Theme.of(context);
+    final colors = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: Text(_isEditing ? 'Edit income' : 'Add income')),
@@ -73,6 +74,15 @@ class _AddIncomeScreenState extends ConsumerState<AddIncomeScreen> {
                     ? 'Update the details of this income entry.'
                     : 'How much did you receive?',
                 style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Container(
+                width: 28,
+                height: 1.5,
+                decoration: BoxDecoration(
+                  color: colors.tertiary.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
               const SizedBox(height: AppSpacing.md),
               TextField(

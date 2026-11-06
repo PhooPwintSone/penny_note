@@ -177,14 +177,17 @@ class SettingsScreen extends ConsumerWidget {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: colors.primary,
+                          color: colors.primaryContainer,
                           borderRadius: BorderRadius.circular(
                             AppSpacing.tileRadius,
+                          ),
+                          border: Border.all(
+                            color: colors.tertiary.withValues(alpha: 0.35),
                           ),
                         ),
                         child: Icon(
                           Icons.savings_rounded,
-                          color: colors.onPrimary,
+                          color: colors.tertiary,
                         ),
                       ),
                       const SizedBox(width: AppSpacing.md),
@@ -211,7 +214,7 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.lg),
                   const Divider(),
                   const SizedBox(height: AppSpacing.md),
-                  const _AboutRow(label: 'Version', value: '1.0.0'),
+                  const _AboutRow(label: 'Version', value: '2.0.0'),
                   const SizedBox(height: AppSpacing.sm),
                   _AboutRow(
                     label: 'Currency',
@@ -359,7 +362,14 @@ class _CurrencyOption extends StatelessWidget {
 
     return Material(
       color: selected ? colors.primaryContainer : colors.surfaceContainerHigh,
-      borderRadius: BorderRadius.circular(AppSpacing.tileRadius),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSpacing.tileRadius),
+        side: BorderSide(
+          color: selected
+              ? colors.tertiary.withValues(alpha: 0.45)
+              : colors.outlineVariant.withValues(alpha: 0.55),
+        ),
+      ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,

@@ -18,6 +18,7 @@ class ExpenseTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final amountColor = context.pennyColors.expense;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
@@ -27,13 +28,14 @@ class ExpenseTile extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: colors.primary.withValues(alpha: 0.1),
+              color: amountColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppSpacing.tileRadius),
+              border: Border.all(color: amountColor.withValues(alpha: 0.18)),
             ),
             child: Icon(
               categoryIconFor(expense.category.icon),
               size: 22,
-              color: colors.primary,
+              color: amountColor,
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -66,7 +68,7 @@ class ExpenseTile extends StatelessWidget {
             '− ${formatCents(expense.amountCents, currency)}',
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w700,
-              color: context.pennyColors.expense,
+              color: amountColor,
             ),
           ),
         ],

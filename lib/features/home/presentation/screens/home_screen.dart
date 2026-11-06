@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/date_formats.dart';
 import '../../../../core/utils/money.dart';
@@ -23,6 +24,8 @@ class HomeScreen extends ConsumerWidget {
     final homeState = ref.watch(homeViewModelProvider);
     final currency = ref.watch(currencyProvider);
     final now = DateTime.now();
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
 
     return Scaffold(
       body: SafeArea(
@@ -54,13 +57,24 @@ class HomeScreen extends ConsumerWidget {
               children: [
                 Text(
                   '${greetingFor(now)} 👋',
-                  style: Theme.of(context).textTheme.headlineMedium,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   formatHeaderDate(now),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Container(
+                  width: 36,
+                  height: 1.5,
+                  decoration: BoxDecoration(
+                    color: colors.tertiary.withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
@@ -68,6 +82,10 @@ class HomeScreen extends ConsumerWidget {
                   balanceCents: state.balanceCents,
                   cashBalanceCents: state.cashBalanceCents,
                   savingsBalanceCents: state.savingsBalanceCents,
+                  currency: currency,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _IncomeExpenseCards(
                   incomeCents: state.totalIncomeCents,
                   expenseCents: state.totalExpenseCents,
                   currency: currency,
@@ -89,15 +107,16 @@ class HomeScreen extends ConsumerWidget {
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.1),
+                            color: colors.tertiary.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
+                            border: Border.all(
+                              color: colors.tertiary.withValues(alpha: 0.3),
+                            ),
                           ),
                           child: Icon(
                             Icons.receipt_long_rounded,
                             size: 24,
-                            color: Theme.of(context).colorScheme.primary,
+                            color: colors.primary,
                           ),
                         ),
                         const SizedBox(width: AppSpacing.md),
@@ -107,7 +126,7 @@ class HomeScreen extends ConsumerWidget {
                             children: [
                               Text(
                                 'No expenses yet.',
-                                style: Theme.of(context).textTheme.titleSmall,
+                                style: Theme.of(context).textTheme.titleMedium,
                               ),
                               const SizedBox(height: AppSpacing.xs),
                               Text(
@@ -178,6 +197,126 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
+class _IncomeExpenseCards extends StatelessWidget {
+  const _IncomeExpenseCards({
+    required this.incomeCents,
+    required this.expenseCents,
+    required this.currency,
+  });
+
+  final int incomeCents;
+  final int expenseCents;
+  final AppCurrency currency;
+
+  @override
+  Widget build(BuildContext context) {
+    final income = _SummaryCard(
+      label: 'Income',
+      amountCents: incomeCents,
+      icon: Icons.south_west_rounded,
+      color: context.pennyColors.income,
+      currency: currency,
+    );
+    final expense = _SummaryCard(
+      label: 'Expense',
+      amountCents: expenseCents,
+      icon: Icons.north_east_rounded,
+      color: context.pennyColors.expense,
+      currency: currency,
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 300) {
+          return Column(
+            children: [
+              income,
+              const SizedBox(height: AppSpacing.md),
+              expense,
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: income),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(child: expense),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({
+    required this.label,
+    required this.amountCents,
+    required this.icon,
+    required this.color,
+    required this.currency,
+  });
+
+  final String label;
+  final int amountCents;
+  final IconData icon;
+  final Color color;
+  final AppCurrency currency;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(AppSpacing.tileRadius),
+                  border: Border.all(color: colors.outline, width: 1.5),
+                ),
+                child: Icon(icon, size: 20, color: color),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  label,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              formatCents(amountCents, currency),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SavingsShortcut extends StatelessWidget {
   const _SavingsShortcut({
     required this.totalCents,
@@ -206,17 +345,24 @@ class _SavingsShortcut extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: colors.primary.withValues(alpha: 0.1),
+              color: colors.secondary.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(AppSpacing.tileRadius),
+              border: Border.all(color: colors.outline, width: 1.5),
             ),
-            child: Icon(Icons.savings_outlined, color: colors.primary),
+            child: Icon(Icons.savings_outlined, color: colors.secondary),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Savings', style: theme.textTheme.titleSmall),
+                Text(
+                  'Savings',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    letterSpacing: 0.3,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text(
                   totalCents == 0
@@ -230,10 +376,16 @@ class _SavingsShortcut extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
-          Text(
-            formatCents(totalCents, currency),
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Text(
+                formatCents(totalCents, currency),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: AppSpacing.xs),

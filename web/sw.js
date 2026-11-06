@@ -2,7 +2,7 @@
 
 // Bump this whenever the deployed app shell changes so browsers install the
 // new cache instead of keeping the previous build.
-const CACHE_VERSION = 'penny-note-v4';
+const CACHE_VERSION = 'penny-note-v6';
 const SCOPE = self.registration.scope;
 
 const APP_SHELL = [
@@ -19,6 +19,8 @@ const APP_SHELL = [
   'assets/AssetManifest.bin.json',
   'assets/FontManifest.json',
   'assets/fonts/MaterialIcons-Regular.otf',
+  'assets/assets/fonts/Lora-Variable.ttf',
+  'assets/assets/fonts/SourceSans3-Variable.ttf',
   'assets/packages/cupertino_icons/assets/CupertinoIcons.ttf',
   'assets/shaders/ink_sparkle.frag',
   'assets/shaders/stretch_effect.frag',

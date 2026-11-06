@@ -54,6 +54,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     final categories = ref.watch(categoriesStreamProvider);
     final currency = ref.watch(currencyProvider);
     final theme = Theme.of(context);
+    final colors = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: Text(_isEditing ? 'Edit expense' : 'Add expense')),
@@ -73,6 +74,15 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                     ? 'Update the details of this expense.'
                     : 'How much did you spend?',
                 style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Container(
+                width: 28,
+                height: 1.5,
+                decoration: BoxDecoration(
+                  color: colors.tertiary.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
               const SizedBox(height: AppSpacing.md),
               TextField(
