@@ -11,8 +11,8 @@ assets have been cached.
 
 This repository contains a complete local-first money journal: the architecture,
 theme system, Drift database, dashboard, expense and income add/edit/delete,
-built-in Cash and Savings accounts with transfers, and customizable categories.
-Amounts use Myanmar Kyat (MMK).
+built-in Cash and Savings accounts with transfers, customizable categories, and
+monthly statistics. Amounts use Myanmar Kyat (MMK).
 
 ## What works today
 
@@ -43,7 +43,9 @@ Amounts use Myanmar Kyat (MMK).
   and schema migrations.
 - **Web / PWA** — responsive phone, tablet, and desktop layouts, installable
   Home Screen metadata, and an offline app shell.
-- **Statistics** — UI placeholder for the next iteration.
+- **Statistics** — month-by-month income, expense, and net totals, a six-month
+  income-versus-expense trend, and ranked expense and income category
+  breakdowns. Transfers are excluded because they are not income or expenses.
 
 ## Tech stack
 
@@ -102,7 +104,7 @@ lib/
 │   ├── income/         income entries and income-category CRUD
 │   ├── savings/        Cash <-> Savings transfers and running balance
 │   ├── home/           dashboard screen, ViewModel, balance card
-│   ├── statistics/     placeholder screen
+│   ├── statistics/     monthly totals, trends, and category breakdowns
 │   └── settings/       theme selection, category management, about
 ├── app.dart            MaterialApp, themes, root navigation
 └── main.dart           ProviderScope entry point
@@ -307,6 +309,8 @@ The suite covers:
 - dashboard empty/loaded states and total/cash/savings/income/expense totals
 - expense and income list layout, edit actions, and delete affordances
 - the add/edit expense and income forms
+- statistics totals, category ranking, six-month trends, month navigation, and
+  the empty-month state
 - app smoke test and light/dark theme switching
 - bottom navigation on phones and a navigation rail on larger screens
 
@@ -326,7 +330,6 @@ device.
 - Persist the selected theme
 - Savings goals and progress
 - Budgets and spending limits
-- Statistics: monthly totals, category breakdowns, trends
 - Search and filtering
 - Export/backup and optional encrypted storage
 

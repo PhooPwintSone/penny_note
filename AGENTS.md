@@ -51,7 +51,8 @@ lib/
     income/                           income entries + income-category CRUD
     savings/                          Cash <-> Savings transfer ledger
     home/                             dashboard screen, ViewModel, balance card
-    statistics/                       placeholder screen
+    statistics/                       monthly totals, six-month trend, and
+                                      expense/income category breakdowns
     settings/                         theme, category management, about
 ```
 
@@ -86,11 +87,13 @@ View -> ViewModel -> UseCase -> Repository interface
   `NotifierProvider.autoDispose<...>(...)`. The expense and income forms are
   auto-dispose *families* keyed by the optional entity being edited; do not
   initialize them by mutating the provider from `initState`.
-- `HomeViewModel`, `ExpensesViewModel`, `IncomesViewModel`, and
-  `SavingsViewModel` are `AsyncNotifier`s that await their stream provider's
-  `.future`, so every Drift emission rebuilds the UI state. `HomeViewModel`
-  watches the centralized account summary, which covers expenses, income, and
-  transfers.
+- `HomeViewModel`, `ExpensesViewModel`, `IncomesViewModel`, `SavingsViewModel`,
+  and `StatisticsViewModel` are `AsyncNotifier`s that await their stream
+  provider's `.future`, so every Drift emission rebuilds the UI state.
+  `HomeViewModel` watches the centralized account summary, which covers
+  expenses, income, and transfers. `StatisticsViewModel` reuses the expense and
+  income streams and applies the pure `CalculateStatistics` use case for the
+  selected month; it does not open a second database query.
 - Drift is the source of truth. After add/edit/delete, do **not** manually
   mutate lists; the watched stream re-emits. Delete calls rethrow `AppFailure`
   so the screen can show a snackbar.
@@ -204,7 +207,9 @@ expense add/edit/delete with Cash balance validation; income add/edit/delete
 with its own categories; Myanmar Kyat formatting; built-in Cash and Savings
 accounts; atomic Cash <-> Savings transfers with source-balance validation;
 expense and income category add/edit/delete under Settings; theme switching; and
-a statistics placeholder. Not implemented yet: savings goals, budgets,
-statistics/charts, theme persistence, search, and export. Extend a feature by
-adding domain -> data -> providers -> ViewModel -> screen in that order, and
-only create folders/files that are actually used.
+statistics with monthly totals, a six-month income-versus-expense trend, and
+expense/income category breakdowns. Statistics reuse the existing expense and
+income streams and exclude transfers; they do not open a second database query.
+Not implemented yet: savings goals, budgets, theme persistence, search, and
+export. Extend a feature by adding domain -> data -> providers -> ViewModel ->
+screen in that order, and only create folders/files that are actually used.

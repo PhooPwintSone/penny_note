@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_card.dart';
+import '../../../../core/widgets/date_filter_strip.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/responsive_content.dart';
 import '../../../settings/presentation/providers/settings_providers.dart';
@@ -25,22 +26,21 @@ class IncomesScreen extends ConsumerWidget {
         title: const Text('Income'),
         actions: [
           incomesState.maybeWhen(
-            data: (state) => state.isEmpty
-                ? const SizedBox.shrink()
-                : Padding(
-                    padding: const EdgeInsets.only(
-                      right: AppSpacing.screenPadding,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${state.incomes.length} '
-                        '${state.incomes.length == 1 ? 'entry' : 'entries'}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
+            data: (state) {
+              if (state.isEmpty) return const SizedBox.shrink();
+              final count = state.filteredIncomes.length;
+              return Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.screenPadding),
+                child: Center(
+                  child: Text(
+                    '$count ${count == 1 ? 'entry' : 'entries'}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
+                ),
+              );
+            },
             orElse: () => const SizedBox.shrink(),
           ),
         ],
@@ -82,72 +82,121 @@ class IncomesScreen extends ConsumerWidget {
             );
           }
 
+          final filteredIncomes = state.filteredIncomes;
           return ResponsiveContent(
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screenPadding,
-                AppSpacing.sm,
-                AppSpacing.screenPadding,
-                120,
-              ),
-              itemCount: state.incomes.length,
-              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-              itemBuilder: (context, index) {
-                final income = state.incomes[index];
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                  child: DateFilterStrip(
+                    selectedFilter: state.selectedFilter,
+                    onChanged: (filter) => ref
+                        .read(incomesViewModelProvider.notifier)
+                        .setFilter(filter),
+                  ),
+                ),
+                Expanded(
+                  child: filteredIncomes.isEmpty
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppSpacing.xl),
+                            child: EmptyState(
+                              icon: Icons.event_busy_rounded,
+                              title: 'No income in this range',
+                              message:
+                                  'Choose another range or pick a custom one.',
+                              action: TextButton.icon(
+                                onPressed: () => ref
+                                    .read(incomesViewModelProvider.notifier)
+                                    .resetFilter(),
+                                icon: const Icon(Icons.history_rounded),
+                                label: const Text('Show last 30 days'),
+                              ),
+                            ),
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.screenPadding,
+                            AppSpacing.xs,
+                            AppSpacing.screenPadding,
+                            120,
+                          ),
+                          itemCount: filteredIncomes.length,
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: AppSpacing.sm),
+                          itemBuilder: (context, index) {
+                            final income = filteredIncomes[index];
 
-                return AppCard(
-                  padding: const EdgeInsets.only(
-                    left: AppSpacing.lg,
-                    right: AppSpacing.xs,
-                    top: AppSpacing.xs,
-                    bottom: AppSpacing.xs,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: IncomeTile(income: income, currency: currency),
-                      ),
-                      PopupMenuButton<_IncomeAction>(
-                        tooltip: 'Income options',
-                        icon: Icon(
-                          Icons.more_vert_rounded,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            return AppCard(
+                              padding: const EdgeInsets.only(
+                                left: AppSpacing.lg,
+                                right: AppSpacing.xs,
+                                top: AppSpacing.xs,
+                                bottom: AppSpacing.xs,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: IncomeTile(
+                                      income: income,
+                                      currency: currency,
+                                    ),
+                                  ),
+                                  PopupMenuButton<_IncomeAction>(
+                                    tooltip: 'Income options',
+                                    icon: Icon(
+                                      Icons.more_vert_rounded,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                                    onSelected: (action) {
+                                      switch (action) {
+                                        case _IncomeAction.edit:
+                                          _openIncomeForm(context, income);
+                                        case _IncomeAction.delete:
+                                          _confirmAndDelete(
+                                            context,
+                                            ref,
+                                            income.id,
+                                          );
+                                      }
+                                    },
+                                    itemBuilder: (context) => [
+                                      const PopupMenuItem(
+                                        value: _IncomeAction.edit,
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.edit_outlined, size: 20),
+                                            SizedBox(width: AppSpacing.sm),
+                                            Text('Edit'),
+                                          ],
+                                        ),
+                                      ),
+                                      const PopupMenuItem(
+                                        value: _IncomeAction.delete,
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.delete_outline_rounded,
+                                              size: 20,
+                                            ),
+                                            SizedBox(width: AppSpacing.sm),
+                                            Text('Delete'),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                         ),
-                        onSelected: (action) {
-                          switch (action) {
-                            case _IncomeAction.edit:
-                              _openIncomeForm(context, income);
-                            case _IncomeAction.delete:
-                              _confirmAndDelete(context, ref, income.id);
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: _IncomeAction.edit,
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit_outlined, size: 20),
-                                SizedBox(width: AppSpacing.sm),
-                                Text('Edit'),
-                              ],
-                            ),
-                          ),
-                          const PopupMenuItem(
-                            value: _IncomeAction.delete,
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete_outline_rounded, size: 20),
-                                SizedBox(width: AppSpacing.sm),
-                                Text('Delete'),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
+                ),
+              ],
             ),
           );
         },

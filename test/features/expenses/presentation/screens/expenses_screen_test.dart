@@ -18,14 +18,15 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
+    final now = DateTime.now();
     final expense = Expense(
       id: 1,
       amountCents: 123456,
       category: const Category(id: 1, name: 'Food', icon: 'restaurant'),
       note: 'A long note that must not push the row apart',
-      date: DateTime(2026, 10, 27),
-      createdAt: DateTime(2026, 10, 27),
-      updatedAt: DateTime(2026, 10, 27),
+      date: now,
+      createdAt: now,
+      updatedAt: now,
     );
 
     await tester.pumpWidget(

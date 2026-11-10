@@ -18,14 +18,15 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
+    final now = DateTime.now();
     final income = Income(
       id: 1,
       amountCents: 123456,
       category: const IncomeCategory(id: 1, name: 'Salary', icon: 'payments'),
       note: 'A long note that must not push the row apart',
-      date: DateTime(2026, 10, 27),
-      createdAt: DateTime(2026, 10, 27),
-      updatedAt: DateTime(2026, 10, 27),
+      date: now,
+      createdAt: now,
+      updatedAt: now,
     );
 
     await tester.pumpWidget(

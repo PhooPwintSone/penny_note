@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_card.dart';
+import '../../../../core/widgets/date_filter_strip.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/responsive_content.dart';
 import '../../../settings/presentation/providers/settings_providers.dart';
@@ -25,22 +26,21 @@ class ExpensesScreen extends ConsumerWidget {
         title: const Text('Expenses'),
         actions: [
           expensesState.maybeWhen(
-            data: (state) => state.isEmpty
-                ? const SizedBox.shrink()
-                : Padding(
-                    padding: const EdgeInsets.only(
-                      right: AppSpacing.screenPadding,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${state.expenses.length} '
-                        '${state.expenses.length == 1 ? 'entry' : 'entries'}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
+            data: (state) {
+              if (state.isEmpty) return const SizedBox.shrink();
+              final count = state.filteredExpenses.length;
+              return Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.screenPadding),
+                child: Center(
+                  child: Text(
+                    '$count ${count == 1 ? 'entry' : 'entries'}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
+                ),
+              );
+            },
             orElse: () => const SizedBox.shrink(),
           ),
         ],
@@ -82,75 +82,121 @@ class ExpensesScreen extends ConsumerWidget {
             );
           }
 
+          final filteredExpenses = state.filteredExpenses;
           return ResponsiveContent(
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screenPadding,
-                AppSpacing.sm,
-                AppSpacing.screenPadding,
-                120,
-              ),
-              itemCount: state.expenses.length,
-              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-              itemBuilder: (context, index) {
-                final expense = state.expenses[index];
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                  child: DateFilterStrip(
+                    selectedFilter: state.selectedFilter,
+                    onChanged: (filter) => ref
+                        .read(expensesViewModelProvider.notifier)
+                        .setFilter(filter),
+                  ),
+                ),
+                Expanded(
+                  child: filteredExpenses.isEmpty
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppSpacing.xl),
+                            child: EmptyState(
+                              icon: Icons.event_busy_rounded,
+                              title: 'No expenses in this range',
+                              message:
+                                  'Choose another range or pick a custom one.',
+                              action: TextButton.icon(
+                                onPressed: () => ref
+                                    .read(expensesViewModelProvider.notifier)
+                                    .resetFilter(),
+                                icon: const Icon(Icons.history_rounded),
+                                label: const Text('Show last 30 days'),
+                              ),
+                            ),
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.screenPadding,
+                            AppSpacing.xs,
+                            AppSpacing.screenPadding,
+                            120,
+                          ),
+                          itemCount: filteredExpenses.length,
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: AppSpacing.sm),
+                          itemBuilder: (context, index) {
+                            final expense = filteredExpenses[index];
 
-                return AppCard(
-                  padding: const EdgeInsets.only(
-                    left: AppSpacing.lg,
-                    right: AppSpacing.xs,
-                    top: AppSpacing.xs,
-                    bottom: AppSpacing.xs,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ExpenseTile(
-                          expense: expense,
-                          currency: currency,
+                            return AppCard(
+                              padding: const EdgeInsets.only(
+                                left: AppSpacing.lg,
+                                right: AppSpacing.xs,
+                                top: AppSpacing.xs,
+                                bottom: AppSpacing.xs,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: ExpenseTile(
+                                      expense: expense,
+                                      currency: currency,
+                                    ),
+                                  ),
+                                  PopupMenuButton<_ExpenseAction>(
+                                    tooltip: 'Expense options',
+                                    icon: Icon(
+                                      Icons.more_vert_rounded,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                                    onSelected: (action) {
+                                      switch (action) {
+                                        case _ExpenseAction.edit:
+                                          _openExpenseForm(context, expense);
+                                        case _ExpenseAction.delete:
+                                          _confirmAndDelete(
+                                            context,
+                                            ref,
+                                            expense.id,
+                                          );
+                                      }
+                                    },
+                                    itemBuilder: (context) => [
+                                      const PopupMenuItem(
+                                        value: _ExpenseAction.edit,
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.edit_outlined, size: 20),
+                                            SizedBox(width: AppSpacing.sm),
+                                            Text('Edit'),
+                                          ],
+                                        ),
+                                      ),
+                                      const PopupMenuItem(
+                                        value: _ExpenseAction.delete,
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.delete_outline_rounded,
+                                              size: 20,
+                                            ),
+                                            SizedBox(width: AppSpacing.sm),
+                                            Text('Delete'),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                         ),
-                      ),
-                      PopupMenuButton<_ExpenseAction>(
-                        tooltip: 'Expense options',
-                        icon: Icon(
-                          Icons.more_vert_rounded,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                        onSelected: (action) {
-                          switch (action) {
-                            case _ExpenseAction.edit:
-                              _openExpenseForm(context, expense);
-                            case _ExpenseAction.delete:
-                              _confirmAndDelete(context, ref, expense.id);
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: _ExpenseAction.edit,
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit_outlined, size: 20),
-                                SizedBox(width: AppSpacing.sm),
-                                Text('Edit'),
-                              ],
-                            ),
-                          ),
-                          const PopupMenuItem(
-                            value: _ExpenseAction.delete,
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete_outline_rounded, size: 20),
-                                SizedBox(width: AppSpacing.sm),
-                                Text('Delete'),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
+                ),
+              ],
             ),
           );
         },
