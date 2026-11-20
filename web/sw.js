@@ -2,7 +2,7 @@
 
 // Bump this whenever the deployed app shell changes so browsers install the
 // new cache instead of keeping the previous build.
-const CACHE_VERSION = 'penny-note-v7';
+const CACHE_VERSION = 'penny-note-v8';
 const SCOPE = self.registration.scope;
 
 const APP_SHELL = [
@@ -68,6 +68,9 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  // Vercel Web Analytics is served by the platform; never cache it.
+  if (url.pathname.startsWith('/_vercel/insights/')) return;
 
   if (request.mode === 'navigate') {
     event.respondWith(networkFirstNavigation(request));

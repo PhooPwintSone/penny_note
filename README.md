@@ -5,9 +5,10 @@
 Penny Note is a calm, private expense, income, and savings journal for Android,
 iOS, and the web.
 It is **offline-first**: every entry stays in a local database on the device.
-There is no sign-up, backend, analytics, or API. On the web, the app can be
-installed to the Home Screen and reopened without a network connection after its
-assets have been cached.
+There is no sign-up, backend, or API. The web build uses Vercel Web Analytics
+for anonymous page views; journal data stays on the device. On the web, the app
+can be installed to the Home Screen and reopened without a network connection
+after its assets have been cached.
 
 This repository contains a complete local-first money journal: the architecture,
 theme system, Drift database, dashboard, expense and income add/edit/delete,
@@ -255,6 +256,12 @@ built-in service worker. `web/sw.js` is the app's offline cache. If you change
 the web app shell or add required assets, update the precache list and bump
 `CACHE_VERSION` in `web/sw.js`.
 
+The web build also includes Vercel Web Analytics in `web/index.html`. It only
+reports anonymous page views when the app is deployed on Vercel, where
+`/_vercel/insights/script.js` is available. Journal entries, amounts, notes, and
+account data are never sent to Vercel. `web/sw.js` bypasses the service worker
+for `/_vercel/insights/` requests so analytics is not cached.
+
 Useful checks:
 
 ```sh
@@ -336,4 +343,6 @@ device.
 ## Privacy
 
 Penny Note has no API or network layer for its data. Your journal is stored only
-on your device/browser profile. No analytics or third-party tracking is included.
+on your device/browser profile. The web build uses Vercel Web Analytics to count
+anonymous page views; it does not receive journal entries, amounts, notes, or
+account data. The Android and iOS builds do not include analytics.

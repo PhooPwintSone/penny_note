@@ -173,6 +173,10 @@ View -> ViewModel -> UseCase -> Repository interface
 - `web/sw.js` caches the app shell (including CanvasKit, `sqlite3.wasm`, and
   `drift_worker.js`) and serves navigation network-first, other assets
   stale-while-revalidate. Bump `CACHE_VERSION` when shell assets change.
+- `web/index.html` loads Vercel Web Analytics from `/_vercel/insights/script.js`
+  for the web build. It only works on Vercel deployments. `web/sw.js` bypasses
+  the service worker for `/_vercel/insights/` so analytics requests are not
+  cached. Keep both behaviors when editing the shell.
 - Always build with `--no-web-resources-cdn` so CanvasKit is self-hosted and can
   be cached. The default build loads CanvasKit from gstatic and cannot work
   offline. Hosts must serve `.wasm` as `application/wasm`.
